@@ -1,0 +1,391 @@
+using Agents;
+using AssetShards;
+using Enemies;
+using FX_EffectSystem;
+using GameData;
+using Gear;
+using GTFO.API;
+using LevelGeneration;
+using Player;
+using SNetwork;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using UnhollowerBaseLib.Attributes;
+using UnhollowerRuntimeLib;
+using UnityEngine;
+using static Weapon;
+
+namespace BulletWeaponPlus
+{
+	public class BulletWeaponPlus : MonoBehaviour
+	{
+		public BulletWeaponPlus(IntPtr value) : base(value)
+		{
+		}
+
+
+		public virtual void Fire(BulletWeapon instance, bool resetRecoilSimilarity = true)
+		{
+			if (m_Owner == null) m_Owner = instance.Owner;
+			m_IsBot = m_Owner.Owner.IsBot;
+
+			float inaccuracy = GetInaccuracy(instance);
+
+			instance.m_lastFireTime = Clock.Time;
+			if (m_Owner.IsLocallyOwned) PlayerAgent.LastLocalShotFiredTime = instance.m_lastFireTime;
+
+			if (m_AdvancedArchetype.ShotgunSettings.ShotgunBulletCount < 1 || !m_AdvancedArchetype.ShotgunSettings.Enabled) m_AdvancedArchetype.ShotgunSettings.ShotgunBulletCount = 1;
+			for (var i = 0; i < m_AdvancedArchetype.ShotgunSettings.ShotgunBulletCount; i++) FireBullet(instance, inaccuracy, i);
+
+			MuzzleFlash(instance);
+			RotatingCylinder(instance);
+			ShellCasing(instance);
+
+			instance.ApplyRecoil(resetRecoilSimilarity);
+			instance.TriggerFireAnimationSequence();
+
+			instance.m_clip--;
+			if (m_AdvancedArchetype.UnlimitedMagazine)
+			{
+				m_Owner.Inventory.DoReload();
+			}
+
+			instance.UpdateAmmoStatus();
+
+			if (!OwnedByLocalPlayer)
+			{
+				instance.m_lastFireTime = Clock.Time;
+				switch (instance.ArchetypeData.FireMode)
+				{
+					case eWeaponFireMode.Semi: instance.TriggerSingleFireAudio(); break;
+					case eWeaponFireMode.Burst: instance.TriggerSyncedBurstFirePerShotAudio(); break;
+					case eWeaponFireMode.Auto: instance.TriggerSyncedAutoFirePerShotAudio(); break;
+					case eWeaponFireMode.SemiBurst: instance.TriggerSingleFireAudio(); break;
+				}
+			}
+			else
+			{
+				m_Owner.Sync.RegisterFiredBullets(1);
+				instance.FPItemHolder.DontRelax();
+
+				for (int i = 0; i < instance.m_itemPartAnimators.Count; i++)
+				{
+					instance.m_itemPartAnimators[i].CrossFadeInFixedTime("Fire", 0f, 0);
+				}
+			}
+
+			if (m_Silencer == null) m_Owner.Noise = Agent.NoiseType.Shoot;
+		}
+
+		[HideFromIl2Cpp]
+		public virtual float GetInaccuracy(BulletWeapon instance)
+		{
+			if (!OwnedByLocalPlayer) return 0;
+
+			float inaccuracy;
+			if (instance.FPItemHolder.ItemAimTrigger) inaccuracy = instance.ArchetypeData.AimSpread;
+			else inaccuracy = instance.ArchetypeData.HipFireSpread;
+
+			if (Clock.Time - instance.m_lastFireTime > instance.m_fireRecoilCooldown) inaccuracy *= 0.2f;
+
+			return inaccuracy;
+		}
+		[HideFromIl2Cpp]
+		public virtual void SetupRaycast(BulletWeapon instance, float inaccuracy, int index)
+		{
+			Weapon.s_weaponRayData = new Weapon.WeaponHitData();
+
+			Weapon.s_weaponRayData.maxRayDist = instance.MaxRayDist;
+			Vector3 pos;
+
+			//Fuck network syncing aaaaaaaaaaaaa
+			if (m_IsBot)
+			{
+				pos = instance.MuzzleAlign.position;
+				Weapon.s_weaponRayData.fireDir = m_Owner.TargetLookDir;
+			}
+			else if (OwnedByLocalPlayer)
+			{
+				pos = m_Owner.FPSCamera.Position;
+				Weapon.s_weaponRayData.fireDir = (m_Owner.FPSCamera.CameraRayPos - pos).normalized;
+			}
+			else if (!OwnedByLocalPlayer)
+			{
+				pos = instance.MuzzleAlign.position;
+				Weapon.s_weaponRayData.fireDir = instance.MuzzleAlign.forward;
+			}
+
+			Weapon.s_weaponRayData.owner = m_Owner;
+			Weapon.s_weaponRayData.damage = instance.ArchetypeData.Damage;
+			Weapon.s_weaponRayData.staggerMulti = instance.ArchetypeData.StaggerDamageMulti;
+			Weapon.s_weaponRayData.precisionMulti = instance.ArchetypeData.PrecisionDamageMulti;
+			Weapon.s_weaponRayData.damageFalloff = instance.ArchetypeData.DamageFalloff;
+
+			Weapon.s_weaponRayData.randomSpread = inaccuracy + m_AdvancedArchetype.ShotgunSettings.ShotgunBulletSpread;
+			float f = this.m_segmentSize * index;
+			if (index > 0) //Issue: Shotguns seem to only spread to the right side of the cone. Probably some shit i missed looking at the shotgun code
+			{
+				Weapon.s_weaponRayData.angOffsetX += m_AdvancedArchetype.ShotgunSettings.ShotgunConeSize * Mathf.Cos(f);
+				Weapon.s_weaponRayData.angOffsetY += m_AdvancedArchetype.ShotgunSettings.ShotgunConeSize * Mathf.Sin(f);
+			}
+
+			m_LocalRayData = Weapon.s_weaponRayData;
+		}
+
+		[HideFromIl2Cpp]
+		public virtual void FireBullet(BulletWeapon instance, float inaccuracy, int index)
+		{
+			SetupRaycast(instance, inaccuracy, index);
+			Transform bulletAlign;
+			if (!OwnedByLocalPlayer) bulletAlign = instance.MuzzleAlign;
+			else bulletAlign = m_Owner.FPSCamera.transform;
+
+			bool doDamage = OwnedByLocalPlayer || m_IsBot;
+
+			FX_EffectBase_Poolable fx_tracer = BulletWeapon.s_tracerPool.AquireEffect();
+
+			if (instance.ArchetypeData.PiercingBullets && OwnedByLocalPlayer) Pierce(instance, bulletAlign.position);
+			else if (Weapon.CastWeaponRay(bulletAlign, ref m_LocalRayData, bulletAlign.position, -1))
+			{
+				BulletWeapon.BulletHit(m_LocalRayData, doDamage, 0f, 0U);
+				FX_Manager.EffectTargetPosition = m_LocalRayData.rayHit.point;
+				Weapon.s_weaponRayData = m_LocalRayData;
+
+				a_OnBulletHit?.Invoke(m_LocalRayData.rayHit.point);
+			}
+			else
+			{
+				if (OwnedByLocalPlayer) FX_Manager.EffectTargetPosition = m_Owner.FPSCamera.CameraRayPos;
+				else FX_Manager.EffectTargetPosition = instance.MuzzleAlign.position + m_LocalRayData.fireDir * 20f;
+			}
+
+			FX_Manager.PlayLocalVersion = false;
+			fx_tracer.Play(null, instance.MuzzleAlign.position, Quaternion.LookRotation(Weapon.s_weaponRayData.fireDir));
+
+			a_OnBulletFire?.Invoke();
+		}
+		[HideFromIl2Cpp]
+		public void Pierce(BulletWeapon instance, Vector3 pos)
+		{
+			instance.m_damageSearchID += 1U;
+
+			int pierceCount = 0;
+			float rayDist = 0;
+			bool dontPierce = false;
+			Transform bulletAlign;
+			bool doDamage = OwnedByLocalPlayer || m_IsBot;
+
+			if (!OwnedByLocalPlayer) bulletAlign = instance.MuzzleAlign;
+			else bulletAlign = m_Owner.FPSCamera.transform;
+
+			while (!dontPierce && pierceCount < instance.ArchetypeData.PiercingDamageCountLimit && Weapon.s_weaponRayData.maxRayDist > 0)
+			{
+				if (Weapon.CastWeaponRay(bulletAlign, ref m_LocalRayData, pos, -1))
+				{
+					var target = m_LocalRayData.rayHit.collider.gameObject;
+					if (target.layer != LayerMask.NameToLayer("EnemyDamagable") && target.layer != LayerMask.NameToLayer("PlayerSynced")) dontPierce = true;
+
+					BulletWeapon.BulletHit(m_LocalRayData, doDamage, 0f, 0U);
+					FX_Manager.EffectTargetPosition = m_LocalRayData.rayHit.point;
+					pos = m_LocalRayData.rayHit.point + m_LocalRayData.fireDir * 0.1f;
+					rayDist += m_LocalRayData.rayHit.distance;
+					m_LocalRayData.maxRayDist -= m_LocalRayData.rayHit.distance;
+				}
+				else
+				{
+					dontPierce = true;
+					FX_Manager.EffectTargetPosition = m_Owner.FPSCamera.CameraRayPos;
+				}
+
+				a_OnBulletHit?.Invoke(m_LocalRayData.rayHit.point);
+				Weapon.s_weaponRayData = m_LocalRayData;
+				pierceCount++;
+			}
+		}
+		[HideFromIl2Cpp]
+		public virtual void MuzzleFlash(BulletWeapon instance)
+		{
+			EX_SpriteMuzzleFlash muzzleFlash = instance.m_muzzleFlash;
+			if (muzzleFlash != null)
+			{
+				muzzleFlash.Play();
+			}
+		}
+		[HideFromIl2Cpp]
+		public virtual void RotatingCylinder(BulletWeapon instance)
+		{
+			if (!OwnedByLocalPlayer) return;
+
+			if (instance.m_rotatingCylinder != null)
+			{
+				if (instance.m_cylinderRotationCoroutineScript == null)
+				{
+					instance.m_cylinderRotationCoroutineScript = instance.m_rotatingCylinder.GetComponent<CylinderRotationCoroutine>();
+				}
+				float y = 360f / (float)instance.ClipSize;
+				instance.m_cylinderRotationCoroutineScript.RotationAngle = Quaternion.Euler(0f, y, 0f);
+			}
+		}
+		[HideFromIl2Cpp]
+		public virtual void ShellCasing(BulletWeapon instance)
+		{
+			if (instance.ShellCasingData != null && instance.ShellCasingData.ShellCasingType != ShellTypes.Shell_None)
+			{
+				if (m_Owner.IsLocallyOwned)
+				{
+					WeaponShellManager.RegisterFPSShellEject(instance.ShellCasingData.ShellCasingType, instance.ShellEjectAlign);
+				}
+				else
+				{
+					WeaponShellManager.EjectShell(instance.ShellCasingData.ShellCasingType, instance.ShellEjectAlign.position, instance.ShellEjectAlign.rotation, instance.ShellEjectAlign.forward);
+				}
+			}
+		}
+
+		public virtual void OnGearSpawnComplete(BulletWeapon instance)
+		{
+			m_Weapon = instance;
+			instance.m_archeType = new(instance.ArchetypeData);
+			instance.RecoilData = new();
+			instance.m_recoilPosOffset = new();
+			instance.m_recoilRotOffset = new();
+			instance._Sound_k__BackingField = new();
+			instance.Sound = new();
+
+			instance.m_gearSpawnComplete = true;
+			if (instance.AttachedFlashlight != null)
+			{
+				instance.AttachedFlashlight.SetEnabled(false);
+			}
+			instance.SightLookAlign = CustomExtensions.FindChildRecursive(instance.transform, instance.ItemDataBlock.SightLookAlign, true);
+			instance.MuzzleAlign = CustomExtensions.FindChildRecursive(instance.transform, instance.ItemDataBlock.MuzzleAlign, true);
+			instance.BackpackAlign = CustomExtensions.FindChildRecursive(instance.transform, instance.ItemDataBlock.BackpackAlign, true);
+
+			instance.SetupAudioEvents();
+			instance.SetupArchetype();
+			SetupAdvancedArchetype(instance);
+			instance.SetupEffects();
+
+			m_segmentSize = MathUtil.DegreeToRadian(360f / ((float)instance.ArchetypeData.ShotgunBulletCount - 1f));
+		}
+
+		[HideFromIl2Cpp]
+		public virtual void SetupAdvancedArchetype(BulletWeapon instance)
+		{
+			m_Owner = instance.Owner;
+
+			if (!CustomDatablockManager.Settings.TryGetValue(instance.ArchetypeData.persistentID, out m_AdvancedArchetypeDB))
+			{
+				L.Error($"Failed to find an advanced archetype for {instance.ArchetypeName} ID: {instance.ArchetypeData.persistentID}. Generating a default AdvancedArchetype");
+				m_AdvancedArchetypeDB = new()
+				{
+					InternalName = instance.ArchetypeName,
+					ArchetypeID = instance.ArchetypeData.persistentID,
+					InternalEnabled = true,
+					AdvancedArchetype = new()
+					{
+						ShotgunSettings = new()
+						{
+							ShotgunBulletSpread = instance.ArchetypeData.ShotgunBulletSpread,
+							ShotgunConeSize = instance.ArchetypeData.ShotgunConeSize
+						}
+					}
+				};
+			}
+
+			m_AdvancedArchetype = m_AdvancedArchetypeDB.AdvancedArchetype;
+
+			if (m_AdvancedArchetype.ExplosiveBullets.Enabled) m_ExplosiveBullets = gameObject.AddComponent<Manager_ExplosiveBullets>().Setup(this, m_Owner);
+			if (m_AdvancedArchetype.FireRateSettings.Enabled) m_FireRateModifier = gameObject.AddComponent<Manager_FireRateMod>().Setup(this);
+			if (m_AdvancedArchetype.SilencerSettings.Enabled) m_Silencer = gameObject.AddComponent<Manager_WeaponSilencer>().Setup(this, m_Owner);
+
+			if (m_AdvancedArchetype.OverrideReserveAmmoCapacity)
+			{
+				float relValue = 0;
+				var playerDB = GameDataBlockBase<PlayerDataBlock>.GetAllBlocks()[0];
+				switch (instance.ItemDataBlock.inventorySlot)
+				{
+					case InventorySlot.GearStandard: relValue = playerDB.AmmoStandardMaxCap; break;
+					case InventorySlot.GearSpecial: relValue = playerDB.AmmoSpecialMaxCap; break;
+					case InventorySlot.GearClass: relValue = playerDB.AmmoClassMaxCap; break;
+				}
+				instance.ArchetypeData.CostOfBullet = (relValue / m_AdvancedArchetype.ReserveAmmoCapacity);
+			}
+		}
+
+		public virtual void OnWield(BulletWeapon instance)
+        {
+			/*
+			if (!m_AdvancedArchetype.OverridePlayerDataBlock || m_AdvancedArchetype == null) return;
+			if (Owner == null) return;
+
+			if (m_OwnerDefaultPlayerDB == null) m_OwnerDefaultPlayerDB = GameDataBlockBase<PlayerDataBlock>.GetBlock(1);
+			if (m_WeaponPlayerDB == null) m_OwnerDefaultPlayerDB = GameDataBlockBase<PlayerDataBlock>.GetBlock(m_AdvancedArchetype.PlayerDataBlockWhenHeld);
+
+			Owner.PlayerData = m_WeaponPlayerDB;
+			*/
+        }
+
+		public virtual void OnUnWield(BulletWeapon instance)
+		{
+			/*
+			if (!m_AdvancedArchetype.OverridePlayerDataBlock || m_AdvancedArchetype == null) return;
+			if (Owner == null) return;
+
+			if (m_OwnerDefaultPlayerDB == null) m_OwnerDefaultPlayerDB = GameDataBlockBase<PlayerDataBlock>.GetBlock(1);
+			if (m_WeaponPlayerDB == null) m_OwnerDefaultPlayerDB = GameDataBlockBase<PlayerDataBlock>.GetBlock(m_AdvancedArchetype.PlayerDataBlockWhenHeld);
+
+			Owner.PlayerData = m_OwnerDefaultPlayerDB;
+			*/
+		}
+
+		public bool OwnedByLocalPlayer { get => m_Owner == PlayerManager.GetLocalPlayerAgent(); }
+		public PlayerAgent Owner { get 
+			{
+				if (m_Weapon == null) return null;
+				if (m_Owner == null) m_Owner = m_Weapon.Owner;
+				return m_Owner;
+			}}
+
+		public BulletWeaponArchetype Archetype { get => m_Weapon.m_archeType; }
+
+		public void Invoke_a_OnBulletHit(Vector3 pos) { a_OnBulletHit?.Invoke(pos); }
+		public void Invoke_a_OnBulletFire() { a_OnBulletFire?.Invoke(); }
+
+		public event Action<Vector3> a_OnBulletHit;
+		public event Action a_OnBulletFire;
+
+		public PlayerAgent m_Owner;
+		public BulletWeapon m_Weapon;
+		public bool m_IsBot;
+
+		public WeaponHitData m_LocalRayData;
+		public AdvancedArchetypeSettings m_AdvancedArchetype;
+		public AdvancedArchetypeDatablock m_AdvancedArchetypeDB;
+		public float m_segmentSize;
+
+		public Manager_FireRateMod m_FireRateModifier;
+		public Manager_WeaponSilencer m_Silencer;
+		public Manager_ExplosiveBullets m_ExplosiveBullets;
+
+		public PlayerDataBlock m_OwnerDefaultPlayerDB;
+		public PlayerDataBlock m_WeaponPlayerDB;
+
+		public System.Random m_Rand = new();
+
+		public static ShooterPelletData s_TempPelletData;
+		public static float s_TempStealthMulti;
+		public struct ShooterPelletData
+        {
+			public float Damage;
+			public float SpeedMulti;
+			public bool OverrideLight;
+			public Color LightColor;
+			public float LightRange;
+			public bool OverrideSpeed;
+			public float Speed;
+        }
+	}
+}
