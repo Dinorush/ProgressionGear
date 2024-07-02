@@ -1,9 +1,9 @@
 ﻿using Gear;
 using HarmonyLib;
-using ProgressionWeapons.ProgressionLock;
-using ProgressionWeapons.Utils;
+using ProgressionGear.ProgressionLock;
+using ProgressionGear.Utils;
 
-namespace ProgressionWeapons.Patches
+namespace ProgressionGear.Patches
 {
     [HarmonyPatch]
     internal static class GearManagerPatches

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace ProgressionWeapons.Utils
+namespace ProgressionGear.Utils
 {
     // Iterates over each element in each list held by a dictionary's values.
     internal class DictListEnumerator<T> : IEnumerator<T>

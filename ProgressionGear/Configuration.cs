@@ -3,7 +3,7 @@ using BepInEx;
 using System.IO;
 using GTFO.API.Utilities;
 
-namespace ProgressionWeapons
+namespace ProgressionGear
 {
     internal static class Configuration
     {

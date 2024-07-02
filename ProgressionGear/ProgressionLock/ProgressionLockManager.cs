@@ -1,5 +1,5 @@
-﻿using ProgressionWeapons.JSON;
-using ProgressionWeapons.Utils;
+﻿using ProgressionGear.JSON;
+using ProgressionGear.Utils;
 using GTFO.API.Utilities;
 using MTFO.API;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
-namespace ProgressionWeapons.ProgressionLock
+namespace ProgressionGear.ProgressionLock
 {
     public sealed class ProgressionLockManager
     {

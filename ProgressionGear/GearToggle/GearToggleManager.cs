@@ -1,5 +1,5 @@
-﻿using ProgressionWeapons.JSON;
-using ProgressionWeapons.Utils;
+﻿using ProgressionGear.JSON;
+using ProgressionGear.Utils;
 using GTFO.API.Utilities;
 using MTFO.API;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
 
-namespace ProgressionWeapons.ProgressionLock
+namespace ProgressionGear.ProgressionLock
 {
     public sealed class GearToggleManager
     {

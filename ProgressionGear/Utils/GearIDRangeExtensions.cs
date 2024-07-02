@@ -1,6 +1,6 @@
 ﻿using Gear;
 
-namespace ProgressionWeapons.Utils
+namespace ProgressionGear.Utils
 {
     internal static class GearIDRangeExtensions
     {

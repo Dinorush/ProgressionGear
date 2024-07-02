@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using GTFO.API.JSON.Converters;
 
-namespace ProgressionWeapons.JSON
+namespace ProgressionGear.JSON
 {
     public static class PWJson
     {

@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace ProgressionWeapons.Utils
+namespace ProgressionGear.Utils
 {
     internal static class MTFOUtil
     {

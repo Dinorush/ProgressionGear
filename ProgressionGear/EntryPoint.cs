@@ -1,11 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
-using ProgressionWeapons.Utils;
-using ProgressionWeapons.Dependencies;
-using ProgressionWeapons.ProgressionLock;
+using ProgressionGear.Utils;
+using ProgressionGear.Dependencies;
+using ProgressionGear.ProgressionLock;
 
-namespace ProgressionWeapons;
+namespace ProgressionGear;
 
 [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.0.0")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
@@ -13,7 +13,7 @@ namespace ProgressionWeapons;
 [BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.HardDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
-    public const string MODNAME = "ProgressionWeapons";
+    public const string MODNAME = "ProgressionGear";
 
     public override void Load()
     {

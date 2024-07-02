@@ -1,11 +1,11 @@
-﻿using ProgressionWeapons.Utils;
+﻿using ProgressionGear.Utils;
 using Gear;
 using Player;
-using ProgressionWeapons.Dependencies;
+using ProgressionGear.Dependencies;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ProgressionWeapons.ProgressionLock
+namespace ProgressionGear.ProgressionLock
 {
     public sealed class GearLockManager
     {

@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 
-namespace ProgressionWeapons.Utils
+namespace ProgressionGear.Utils
 {
     internal static class PWLogger
     {

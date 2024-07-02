@@ -1,9 +1,9 @@
 ﻿using CellMenu;
 using HarmonyLib;
-using ProgressionWeapons.Dependencies;
-using ProgressionWeapons.ProgressionLock;
+using ProgressionGear.Dependencies;
+using ProgressionGear.ProgressionLock;
 
-namespace ProgressionWeapons.Patches
+namespace ProgressionGear.Patches
 {
     [HarmonyPatch]
     internal static class PageRundownPatches

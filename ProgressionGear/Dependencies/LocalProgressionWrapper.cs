@@ -3,7 +3,7 @@ using LocalProgression;
 using LocalProgression.Data;
 using System.Collections.Generic;
 
-namespace ProgressionWeapons.Dependencies
+namespace ProgressionGear.Dependencies
 {
     internal static class LocalProgressionWrapper
     {

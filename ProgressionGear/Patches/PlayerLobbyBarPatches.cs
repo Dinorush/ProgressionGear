@@ -2,13 +2,13 @@
 using Gear;
 using HarmonyLib;
 using Player;
-using ProgressionWeapons.ProgressionLock;
-using ProgressionWeapons.Utils;
+using ProgressionGear.ProgressionLock;
+using ProgressionGear.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProgressionWeapons.Patches
+namespace ProgressionGear.Patches
 {
     [HarmonyPatch]
     internal static class PlayerLobbyBarPatches
