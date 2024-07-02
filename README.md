@@ -4,15 +4,15 @@ Adds 2 features for rundown developers: **Gear Toggling** and **Progression-Lock
 
 ## Gear Toggling
 
-Gear Toggling allows gear to occupy the same slot in the loadout selection screen. When such a gear with toggle data is selected, a button appears underneath its description that swaps to the next gear when clicked.
+Gear Toggling allows gear to occupy the same slot in the loadout selection screen. When a gear with toggle data is selected, a button appears underneath its description that swaps to the next gear when clicked.
 
 The custom files are lists of objects which contain:
 - `OfflineIDs`: A list of PlayerOfflineGear IDs that are swapped between.
 - `Name`: Serves no practical purpose, but can be handy for organizing/debugging as a developer.
 
-Gear is swapped in the order of the list. The first ID in the list is the default weapon that appears; swapping goes to the second and so on. The first ID in the list also determines the gear type (Main, Special, Tool, Melee). There are two rules for IDs:
+The first ID in the list is the default weapon that appears; all others are hidden. Gear is swapped in the order of the list. The first ID in the list also determines the gear type (Main, Special, Tool, Melee). There are two rules for IDs:
 - Unique: No ID can appear more than once across all lists.
-- Same Slot: All IDs must be of the same gear type as the first ID.
+- Same Slot: All IDs in the same list must be of the same gear type as the first ID.
 
 If any IDs are progression locked, they are skipped when swapping weapons. If a list only has 1 or 0 valid IDs, no swap button will appear.
 
