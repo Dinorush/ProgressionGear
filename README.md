@@ -1,4 +1,4 @@
-# ProgressionWeapons
+# ProgressionGear
 
 Adds 2 features for rundown developers: **Gear Toggling** and **Progression-Locked Gear**. These are read in via custom files under `Custom/ProgressionWeapons/GearToggle/` and `Custom/ProgressionWeapons/ProgressionLocks/` respectively. If the directories do not exist, template files are created automatically.
 
