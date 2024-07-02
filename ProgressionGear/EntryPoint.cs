@@ -2,15 +2,16 @@
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using ProgressionGear.Utils;
-using ProgressionGear.Dependencies;
 using ProgressionGear.ProgressionLock;
+using ProgressionGear.Dependencies;
+using ProgressionGear.Patches;
 
 namespace ProgressionGear;
 
 [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.0.1")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
     public const string MODNAME = "ProgressionGear";
@@ -19,7 +20,11 @@ internal sealed class EntryPoint : BasePlugin
     {
         PWLogger.Log("Loading " + MODNAME);
 
-        new Harmony(MODNAME).PatchAll();
+        Harmony harmony = new(MODNAME);
+        harmony.PatchAll();
+        if (!LocalProgressionWrapper.HasLocalProgression)
+            harmony.PatchAll(typeof(PageRundownPatches_NoLP));
+
         Configuration.Init();
 
         // Force objects to be initialized to create directories on launch

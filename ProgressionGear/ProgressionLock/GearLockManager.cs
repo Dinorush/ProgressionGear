@@ -1,7 +1,6 @@
 ﻿using ProgressionGear.Utils;
 using Gear;
 using Player;
-using ProgressionGear.Dependencies;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -162,8 +161,7 @@ namespace ProgressionGear.ProgressionLock
                 return;
             }
 
-            LocalProgressionWrapper.UpdateReferences();
-            if (LocalProgressionWrapper.CurrentRundownID == 0) return;
+            if (!ProgressionWrapper.UpdateReferences()) return;
 
             ConfigRundownGears();
             ClearLoadedGears();
@@ -194,7 +192,7 @@ namespace ProgressionGear.ProgressionLock
                   && data.LockLayoutIDs.All(LayoutComplete) && data.LockTiers.All(TierComplete));
         }
 
-        private static bool LayoutComplete(uint id) => LocalProgressionWrapper.LayoutComplete(id);
-        private static bool TierComplete(eRundownTier tier) => LocalProgressionWrapper.TierComplete(tier);
+        private static bool LayoutComplete(uint id) => ProgressionWrapper.LayoutComplete(id);
+        private static bool TierComplete(eRundownTier tier) => ProgressionWrapper.TierComplete(tier);
     }
 }
