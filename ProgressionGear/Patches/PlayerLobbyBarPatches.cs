@@ -31,26 +31,22 @@ namespace ProgressionGear.Patches
             // If the player's selected weapon was already found, don't need to do anything.
             if (_cachedItem != __instance.selectedWeaponSlotItem) return;
             // Otherwise, they may have selected a weapon that isn't the default slot of its toggle list.
-            // Need to iterate over the lists of each weapon to potentially find a match.
+            // Need to check each slot item to find which one the weapon belongs to.
 
-            if (!PlayerBackpackManager.TryGetItem(__instance.m_player, slot, out var bpItem)) return;
+            if (!PlayerBackpackManager.TryGetItem(__instance.m_player, slot, out var bpItem) || bpItem.GearIDRange == null) return;
+            
             uint bpID = bpItem.GearIDRange.GetOfflineID();
+            if (!GearToggleManager.Current.TryGetRelatedIDs(bpID, out var relatedIDs)) return;
 
             foreach (var content in __instance.m_popupScrollWindow.ContentItems)
             {
                 CM_InventorySlotItem slotItem = content.TryCast<CM_InventorySlotItem>()!;
-                uint slotID = slotItem.m_gearID.GetOfflineID();
-                if (!GearToggleManager.Current.TryGetRelatedIDs(slotID, out var relatedIDs)) continue;
-
-                foreach (uint id in relatedIDs)
+                if (relatedIDs.Contains(slotItem.m_gearID.GetOfflineID()))
                 {
-                    if (bpID == id && GearManager.TryGetGear("OfflineGear_ID_" + id, out var idRange))
-                    {
-                        slotItem.IsPicked = true;
-                        slotItem.LoadData(idRange, true, true);
-                        __instance.OnWeaponSlotItemSelected(slotItem);
-                        return;
-                    }
+                    slotItem.IsPicked = true;
+                    slotItem.LoadData(bpItem.GearIDRange, true, true);
+                    __instance.OnWeaponSlotItemSelected(slotItem);
+                    return;
                 }
             }
         }
