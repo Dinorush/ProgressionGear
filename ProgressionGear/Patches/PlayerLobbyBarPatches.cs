@@ -67,16 +67,17 @@ namespace ProgressionGear.Patches
             item.OnBtnPressCallback = null;
             item.add_OnBtnPressCallback((Action<int>)((id) =>
             {
-                if (_cachedItem == null) return;
+                CM_InventorySlotItem? slotItem = __instance.selectedWeaponSlotItem ?? _cachedItem;
+                if (slotItem == null) return;
 
-                uint offlineID = _cachedItem.m_gearID.GetOfflineID();
+                uint offlineID = slotItem.m_gearID.GetOfflineID();
                 List<uint> relatedIDs = GearToggleManager.Current.GetRelatedIDs(offlineID)!;
 
                 uint nextID = relatedIDs[(relatedIDs.IndexOf(offlineID) + 1) % relatedIDs.Count];
                 if (GearManager.TryGetGear("OfflineGear_ID_" + nextID, out var newRange))
                 {
-                    _cachedItem.LoadData(newRange, true, true);
-                    __instance.OnWeaponSlotItemSelected(_cachedItem);
+                    slotItem.LoadData(newRange, true, true);
+                    __instance.OnWeaponSlotItemSelected(slotItem);
                 }
                 else
                     PWLogger.Error($"Couldn't swap to next weapon ({nextID}) in toggle list!");
