@@ -186,8 +186,7 @@ namespace ProgressionGear.ProgressionLock
         // Conversely, an implicit lock occurs when unlock requirements are set but no requirements are fulfilled.
         private static bool IsLockExplicit(ProgressionLockData data)
         {
-            return ((data.UnlockLayoutIDs.Any() || data.UnlockTiers.Any())
-                  && data.UnlockLayoutIDs.All(LayoutComplete) && data.UnlockTiers.All(TierComplete))
+            return (data.UnlockLayoutIDs.All(LayoutComplete) && data.UnlockTiers.All(TierComplete))
                 || ((data.LockLayoutIDs.Any() || data.LockTiers.Any())
                   && data.LockLayoutIDs.All(LayoutComplete) && data.LockTiers.All(TierComplete));
         }
