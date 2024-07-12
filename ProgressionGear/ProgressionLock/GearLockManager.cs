@@ -8,7 +8,7 @@ namespace ProgressionGear.ProgressionLock
 {
     public sealed class GearLockManager
     {
-        public static GearLockManager Instance { get; private set; } = new();
+        public static GearLockManager Current { get; private set; } = new();
 
         public GearManager? VanillaGearManager { internal set; get; } // setup in patch: GearManager.SetupGearInOfflineMode
 
@@ -21,17 +21,6 @@ namespace ProgressionGear.ProgressionLock
             (InventorySlot.GearMelee, new()),
             (InventorySlot.GearClass, new()),
         };
-
-        private bool _setupGearOnLoad = false;
-
-        internal void Setup()
-        {
-            if (_setupGearOnLoad)
-            {
-                _setupGearOnLoad = false;
-                SetupAllowedGearsForActiveRundown();
-            }
-        }
 
         private void ConfigRundownGears()
         {
@@ -155,12 +144,6 @@ namespace ProgressionGear.ProgressionLock
 
         internal void SetupAllowedGearsForActiveRundown()
         {
-            if (VanillaGearManager == null)
-            {
-                _setupGearOnLoad = true;
-                return;
-            }
-
             if (!ProgressionWrapper.UpdateReferences()) return;
 
             ConfigRundownGears();
@@ -168,6 +151,38 @@ namespace ProgressionGear.ProgressionLock
             AddGearForCurrentRundown();
             ResetPlayerSelectedGears();
             RemoveToggleGears();
+        }
+
+        // EOS MUST have already ran its gear setup if this is called!
+        internal void LockGearForActiveRundown()
+        {
+            if (!ProgressionWrapper.UpdateReferences()) return;
+
+            ReapplyGearLocks();
+            ResetPlayerSelectedGears();
+            RemoveToggleGears();
+        }
+
+        private void ReapplyGearLocks()
+        {
+            foreach (var (inventorySlot, loadedGears) in GearSlots)
+            {
+                var vanillaSlot = VanillaGearManager!.m_gearPerSlot[(int)inventorySlot];
+
+                HashSet<uint> loadedIDs = new(loadedGears.Keys);
+
+                for (int i = vanillaSlot.Count - 1; i >= 0; i--)
+                {
+                    uint id = vanillaSlot[i].GetOfflineID();
+                    if (!IsGearAllowed(id))
+                        vanillaSlot.RemoveAt(i);
+                    loadedIDs.Remove(id);
+                }
+
+                // Only IDs excluded by EOS (and possibly also Progression Gear) are left behind 
+                foreach (uint id in loadedIDs)
+                    GearToggleManager.Current.RemoveFromRelatedIDs(id);
+            }
         }
 
         // If there are unfinished unlock requirements, it is implicitly locked.
