@@ -35,7 +35,7 @@ Any gear that has unlock requirements is automatically locked until they are com
 
 Can work on mods with multiple rundowns, but has limited support. Requirements are only checked against the current rundown. If a level layout ID is not found, it is assumed to be completed.
 
-Note: When resolving lock conflicts, completed requirements are considered a higher tier of priority. For instance, consider these two blocks:
+Note: When resolving lock conflicts, completed requirements are considered a higher tier of priority. Empty unlock requirements are considered completed for these purposes. For instance, consider these two blocks:
 ```
 {
   "UnlockTiers": ["TierA"],
