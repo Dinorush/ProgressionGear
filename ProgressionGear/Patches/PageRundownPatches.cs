@@ -15,7 +15,7 @@ namespace ProgressionGear.Patches
         [HarmonyPostfix]
         private static void Post_RundownUpdate()
         {
-            GearLockManager.Instance.SetupAllowedGearsForActiveRundown();
+            GearLockManager.Current.SetupAllowedGearsForActiveRundown();
         }
     }
 

@@ -155,9 +155,9 @@ namespace ProgressionGear.ProgressionLock
 
         private void RemoveInvalidGear(List<uint> relatedIDs, string name)
         {
-            if (GearLockManager.Instance.VanillaGearManager == null) return;
+            if (GearLockManager.Current.VanillaGearManager == null) return;
 
-            foreach (var (inventorySlot, loadedGears) in GearLockManager.Instance.GearSlots)
+            foreach (var (inventorySlot, loadedGears) in GearLockManager.Current.GearSlots)
             {
                 // Using the first ID as the intended inventory slot
                 if (!loadedGears.ContainsKey(relatedIDs[0])) continue;
