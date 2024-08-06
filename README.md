@@ -21,17 +21,20 @@ If any IDs are progression locked, they are skipped when swapping weapons. If a 
 Progression-Locked Gear allows gear to be locked or unlocked as expeditions or tiers are completed. It is **not** used to lock gear to certain levels; [ExtraObjectiveSetup](https://thunderstore.io/c/gtfo/p/Inas07/ExtraObjectiveSetup/) offers that instead.
 
 The custom files are lists of objects which contain:
-- `UnlockLayoutIDs`: A list of level layout IDs that must be completed to unlock the gear.
-- `UnlockTiers`: A list of tiers that must be completed to unlock the gear.
-    - Can be "TierA", "TierB", ... or 1, 2, ...
-- `LockLayoutIDs`: A list of level layout IDs that must be completed to lock the gear.
-- `LockTiers`: A list of tiers that must be completed to lock the gear.
-    - Can be "TierA", "TierB", ... or 1, 2, ...
+- `Unlock`: A list of level layout IDs, tiers, or full requirement objects that must be completed to unlock the gear.
+  - Layout IDs can be numbers or PartialData string IDs. Tiers must be "TierA", "TierB", ...
+- `Lock`: A list of level layout IDs, tiers, or full requirement objects that must be completed to lock the gear.
 - `OfflineIDs`: A list of PlayerOfflineGear IDs these unlocks/locks apply to.
 - `Priority`: Specifies the priority of this unlock/lock. If two different blocks lock/unlock the same gear, the highest priority's lock/unlock is used.
 - `Name`: Serves no practical purpose, but can be handy for organizing/debugging as a developer.
 
-Any gear that has unlock requirements is automatically locked until they are completed. Additionally, lock requirements override unlock requirements in the event that both are completed. If layout IDs *and* tiers are required to unlock/lock, both must be completed.
+You may use a requirement object if you wish to specify sector completions. They contain the fields:
+
+- `Level`: A level layout ID or tier.
+- `Main`, `Secondary`, `Overload`, `All`, `AllNoBoosters`: Requires the corresponding clear if set to true.
+  - By default, only `Main` is required.
+
+Any gear that has unlock requirements is automatically locked until they are completed. Additionally, lock requirements override unlock requirements in the event that both are completed.
 
 Can work on mods with multiple rundowns, but has limited support. Requirements are only checked against the current rundown. If a level layout ID is not found, it is assumed to be completed.
 
