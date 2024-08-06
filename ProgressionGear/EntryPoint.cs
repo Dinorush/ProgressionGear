@@ -13,6 +13,7 @@ namespace ProgressionGear;
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(EOSWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
     public const string MODNAME = "ProgressionGear";
@@ -25,6 +26,8 @@ internal sealed class EntryPoint : BasePlugin
         harmony.PatchAll();
         if (!LocalProgressionWrapper.HasLocalProgression)
             harmony.PatchAll(typeof(PageRundownPatches_NoLP));
+        if (EOSWrapper.HasEOS)
+            harmony.PatchAll(typeof(RundownManagerPatches_EOS));
 
         Configuration.Init();
 

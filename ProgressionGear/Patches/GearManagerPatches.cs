@@ -13,9 +13,9 @@ namespace ProgressionGear.Patches
         [HarmonyPostfix]
         private static void Post_SetupGearInOfflineMode()
         {
-            GearLockManager.Instance.VanillaGearManager = GearManager.Current;
+            GearLockManager.Current.VanillaGearManager = GearManager.Current;
 
-            foreach (var (inventorySlot, loadedGears) in GearLockManager.Instance.GearSlots)
+            foreach (var (inventorySlot, loadedGears) in GearLockManager.Current.GearSlots)
             {
                 foreach (GearIDRange gearIDRange in GearManager.Current.m_gearPerSlot[(int)inventorySlot])
                 {
@@ -24,7 +24,6 @@ namespace ProgressionGear.Patches
                 }
             }
             GearToggleManager.Current.ResetRelatedIDs();
-            GearLockManager.Instance.Setup();
         }
     }
 }
