@@ -1,6 +1,6 @@
 ﻿namespace ProgressionGear.ProgressionLock
 {
-    internal class ProgressionData
+    public sealed class ProgressionData
     {
         public string ExpeditionKey { get; set; } = string.Empty;
 

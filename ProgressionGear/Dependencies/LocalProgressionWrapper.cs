@@ -4,7 +4,7 @@ using ProgressionGear.ProgressionLock;
 
 namespace ProgressionGear.Dependencies
 {
-    internal class LocalProgressionWrapper
+    internal static class LocalProgressionWrapper
     {
         public const string GUID = "Inas.LocalProgression";
 

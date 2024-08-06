@@ -4,10 +4,56 @@ namespace ProgressionGear.ProgressionLock
 {
     public sealed class ProgressionLockData
     {
-        public List<uint> UnlockLayoutIDs { get; set; } = new();
-        public List<eRundownTier> UnlockTiers { get; set; } = new();
-        public List<uint> LockLayoutIDs { get; set; } = new();
-        public List<eRundownTier> LockTiers { get; set; } = new();
+        public readonly static ProgressionLockData[] Template = new ProgressionLockData[]
+        {
+            new()
+            {
+                Unlock = new()
+                {
+                    new ProgressionRequirement()
+                    {
+                        LevelLayoutID = 420
+                    },
+                    new ProgressionRequirement()
+                    {
+                        Tier = eRundownTier.TierB,
+                    },
+                    new ProgressionRequirement()
+                    {
+                        LevelLayoutID = 10,
+                        Main = true,
+                        Secondary = true
+                    },
+                    new ProgressionRequirement()
+                    {
+                        Tier = eRundownTier.TierA,
+                        Main = false,
+                        All = true,
+                    }
+                },
+                Lock = new()
+                {
+                    new ProgressionRequirement()
+                    {
+                        Tier = eRundownTier.TierC
+                    }
+                },
+                OfflineIDs = new() {0},
+                Priority = 0,
+                Name = "Example"
+            },
+            new()
+            {
+                Name = "Empty Example"
+            }
+        };
+
+        public List<ProgressionRequirement> UnlockLayoutIDs { get; set; } = new();
+        public List<ProgressionRequirement> UnlockTiers { get; set; } = new();
+        public List<ProgressionRequirement> Unlock { get; set; } = new();
+        public List<ProgressionRequirement> LockLayoutIDs { get; set; } = new();
+        public List<ProgressionRequirement> LockTiers { get; set; } = new();
+        public List<ProgressionRequirement> Lock { get; set; } = new();
         public List<uint> OfflineIDs { get; set; } = new();
         public int Priority { get; set; } = 0;
         public string Name { get; set; } = string.Empty;

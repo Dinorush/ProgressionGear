@@ -174,10 +174,8 @@ namespace ProgressionGear.ProgressionLock
         // If unlock requirements are met, it can still be explicitly locked by lock requirements.
         private static bool IsGearLocked(ProgressionLockData data)
         {
-            bool locked = (data.UnlockLayoutIDs.Any() && !data.UnlockLayoutIDs.All(LayoutComplete))
-                       || (data.UnlockTiers.Any() && !data.UnlockTiers.All(TierComplete))
-                       || ((data.LockLayoutIDs.Any() || data.LockTiers.Any())
-                         && data.LockLayoutIDs.All(LayoutComplete) && data.LockTiers.All(TierComplete));
+            bool locked = (data.Unlock.Any() && !data.Unlock.All(IsComplete))
+                       || (data.Lock.Any() && data.Lock.All(IsComplete));
 
             return locked;
         }
@@ -186,12 +184,10 @@ namespace ProgressionGear.ProgressionLock
         // Conversely, an implicit lock occurs when unlock requirements are set but no requirements are fulfilled.
         private static bool IsLockExplicit(ProgressionLockData data)
         {
-            return (data.UnlockLayoutIDs.All(LayoutComplete) && data.UnlockTiers.All(TierComplete))
-                || ((data.LockLayoutIDs.Any() || data.LockTiers.Any())
-                  && data.LockLayoutIDs.All(LayoutComplete) && data.LockTiers.All(TierComplete));
+            return data.Unlock.All(IsComplete)
+                || (data.Lock.Any() && data.Lock.All(IsComplete));
         }
 
-        private static bool LayoutComplete(uint id) => ProgressionWrapper.LayoutComplete(id);
-        private static bool TierComplete(eRundownTier tier) => ProgressionWrapper.TierComplete(tier);
+        private static bool IsComplete(ProgressionRequirement req) => ProgressionWrapper.IsComplete(req);
     }
 }

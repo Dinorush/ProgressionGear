@@ -1,6 +1,5 @@
 ﻿using GameData;
 using ProgressionGear.Dependencies;
-using ProgressionGear.Utils;
 using System.Collections.Generic;
 
 namespace ProgressionGear.ProgressionLock
@@ -104,28 +103,22 @@ namespace ProgressionGear.ProgressionLock
             return _nativeProgression[tier][index];
         }
 
-        private static bool ExpeditionComplete(ProgressionData data)
-        {
-            return data.MainCompletionCount > 0 || data.SecondaryCompletionCount > 0 || data.ThirdCompletionCount > 0;
-        }
-
-        public static bool LayoutComplete(uint layoutID)
+        public static bool IsComplete(ProgressionRequirement req)
         {
             UpdateReferences();
-            if (!_layoutToExpedition.ContainsKey(layoutID))
-                return true;
-
-            ExpeditionKey key = _layoutToExpedition[layoutID];
-            return ExpeditionComplete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex));
-        }
-
-        public static bool TierComplete(eRundownTier tier)
-        {
-            UpdateReferences();
-
-            foreach (ExpeditionKey key in _tierExpeditionKeys[tier])
-                if (!ExpeditionComplete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex)))
-                    return false;
+            if (req.LevelLayoutID != 0)
+            {
+                if (!_layoutToExpedition.ContainsKey(req.LevelLayoutID))
+                    return true;
+                ExpeditionKey key = _layoutToExpedition[req.LevelLayoutID];
+                return req.Complete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex));
+            }
+            else if (req.Tier != eRundownTier.Surface)
+            {
+                foreach (ExpeditionKey key in _tierExpeditionKeys[req.Tier])
+                    if (!req.Complete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex)))
+                        return false;
+            }
             return true;
         }
     }

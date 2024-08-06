@@ -11,6 +11,7 @@ namespace ProgressionGear;
 [BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.1.2")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
+[BepInDependency(PartialDataWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
