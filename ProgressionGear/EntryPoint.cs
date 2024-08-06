@@ -8,7 +8,7 @@ using ProgressionGear.Patches;
 
 namespace ProgressionGear;
 
-[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.1.2")]
+[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.2.0")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
