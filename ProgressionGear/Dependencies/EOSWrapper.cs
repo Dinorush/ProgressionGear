@@ -1,6 +1,4 @@
 ﻿using BepInEx.Unity.IL2CPP;
-using ExtraObjectiveSetup.Expedition.Gears;
-using Gear;
 
 namespace ProgressionGear.Dependencies
 {
