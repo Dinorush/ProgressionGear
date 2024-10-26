@@ -35,7 +35,6 @@
 	<ItemGroup>
 		<Reference Include="$(PluginsFolder)/GTFO-API.dll" Private="false" />
 		<Reference Include="$(PluginsFolder)\**\MTFO.dll" Private="false" />
-		<Reference Include="$(PluginsFolder)\**\AWOPartialDataFixer.dll" Private="false" />
 	    <Reference Include="$(PluginsFolder)\**\Inas07.LocalProgression.dll" Private="false" />
 		<Reference Include="$(PluginsFolder)\**\Inas07.ExtraObjectiveSetup.dll" Private="false" />
 	</ItemGroup>

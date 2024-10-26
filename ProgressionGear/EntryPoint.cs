@@ -8,10 +8,10 @@ using ProgressionGear.Patches;
 
 namespace ProgressionGear;
 
-[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.2.0")]
+[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.2.1")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
-[BepInDependency(PartialDataWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(EOSWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin

@@ -24,9 +24,10 @@ namespace ProgressionGear.JSON
             _readSettings.Converters.Add(new JsonStringEnumConverter());
             _readSettings.Converters.Add(new LocalizedTextConverter());
             _readSettings.Converters.Add(new ProgressionRequirementConverter());
-            PartialDataWrapper.AddIDConverter(_readSettings.Converters);
+            if (PartialDataWrapper.HasPartialData)
+                _readSettings.Converters.Add(PartialDataWrapper.PersistentIDConverter!);
 
-            foreach(var converter in _readSettings.Converters)
+            foreach (var converter in _readSettings.Converters)
                 _writeSettings.Converters.Add(converter);
             _writeSettings.Converters.Add(new ProgressionLockDataConverter());
         }
