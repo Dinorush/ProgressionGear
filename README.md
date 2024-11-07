@@ -21,16 +21,18 @@ If any IDs are progression locked, they are skipped when swapping weapons. If a 
 Progression-Locked Gear allows gear to be locked or unlocked as expeditions or tiers are completed. It is **not** used to lock gear to certain levels; [ExtraObjectiveSetup](https://thunderstore.io/c/gtfo/p/Inas07/ExtraObjectiveSetup/) offers that instead.
 
 The custom files are lists of objects which contain:
-- `Unlock`: A list of level layout IDs, tiers, or full requirement objects that must be completed to unlock the gear.
-  - Layout IDs can be numbers or PartialData string IDs. Tiers must be "TierA", "TierB", ...
-- `Lock`: A list of level layout IDs, tiers, or full requirement objects that must be completed to lock the gear.
+- `Unlock`: A list of level layout IDs, tiers, levels, or full requirement objects that must be completed to unlock the gear.
+  - Layout IDs can be numbers or PartialData string IDs.
+  - Tiers can be in the formats "TierA" or "B".
+  - Levels are specified by Tier + Index (by 1), e.g. "TierA1" or "B3".
+- `Lock`: A list of level layout IDs, tiers, levels, or full requirement objects that must be completed to lock the gear.
 - `OfflineIDs`: A list of PlayerOfflineGear IDs these unlocks/locks apply to.
 - `Priority`: Specifies the priority of this unlock/lock. If two different blocks lock/unlock the same gear, the highest priority's lock/unlock is used.
 - `Name`: Serves no practical purpose, but can be handy for organizing/debugging as a developer.
 
 You may use a requirement object if you wish to specify sector completions. They contain the fields:
 
-- `Level`: A level layout ID or tier.
+- `Level`: A level layout ID, tier, or level.
 - `Main`, `Secondary`, `Overload`, `All`, `AllNoBoosters`: Requires the corresponding clear if set to true.
   - By default, only `Main` is required.
 
