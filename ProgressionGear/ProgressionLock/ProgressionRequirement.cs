@@ -3,6 +3,7 @@
     public sealed class ProgressionRequirement
     {
         public eRundownTier Tier { get; set; } = eRundownTier.Surface;
+        public int TierIndex { get; set; } = -1;
         public uint LevelLayoutID { get; set; } = 0;
         public bool Main { get; set; } = true;
         public bool Secondary { get; set; } = false;

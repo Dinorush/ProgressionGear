@@ -71,7 +71,24 @@ namespace ProgressionGear.JSON
 
             if (reader.TokenType == JsonTokenType.String)
             {
-                req.Tier = reader.GetString()!.ToEnum(eRundownTier.Surface);
+                string text = reader.GetString()!;
+
+                // Try to parse it as "TierX"
+                if (text.Length >= 5)
+                    req.Tier = text[..5].ToEnum(eRundownTier.Surface);
+                // Try to parse it as "X"
+                else
+                    req.Tier = ("Tier" + text[0]).ToEnum(eRundownTier.Surface);
+
+                int indexStart = text.Length >= 5 ? 5 : 1;
+                if (req.Tier != eRundownTier.Surface && text.Length > indexStart)
+                {
+                    if (int.TryParse(text[indexStart..], out int index))
+                        req.TierIndex = index - 1;
+                    else // More in the text than tier, but not a number - must not be in TierIndex format
+                        req.Tier = eRundownTier.Surface;
+                }
+
                 if (req.Tier == eRundownTier.Surface) // Partial data ID case
                     req.LevelLayoutID = JsonSerializer.Deserialize<uint>(ref reader, options);
                 return true;
@@ -108,7 +125,7 @@ namespace ProgressionGear.JSON
             if (value.LevelLayoutID != 0)
                 writer.WriteNumberValue(value.LevelLayoutID);
             else
-                writer.WriteStringValue(value.Tier.ToString());
+                writer.WriteStringValue(value.Tier.ToString() + (value.TierIndex >= 0 ? value.TierIndex + 1 : ""));
             writer.WriteBoolean(nameof(value.Main), value.Main);
             writer.WriteBoolean(nameof(value.Secondary), value.Secondary);
             writer.WriteBoolean(nameof(value.Overload), value.Overload);

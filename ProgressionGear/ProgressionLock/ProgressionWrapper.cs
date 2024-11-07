@@ -86,7 +86,7 @@ namespace ProgressionGear.ProgressionLock
                     continue;
 
                 ExpeditionKey key = new() { tier = tier, expIndex = i };
-                _layoutToExpedition.Add(data.LevelLayoutData, key);
+                _layoutToExpedition.TryAdd(data.LevelLayoutData, key);
                 _tierExpeditionKeys[tier].Add(key);
             }
         }
@@ -115,6 +115,9 @@ namespace ProgressionGear.ProgressionLock
             }
             else if (req.Tier != eRundownTier.Surface)
             {
+                if (req.TierIndex >= 0 && req.TierIndex < _tierExpeditionKeys[req.Tier].Count)
+                    return req.Complete(GetProgressionData(CurrentRundownID, req.Tier, req.TierIndex));
+
                 foreach (ExpeditionKey key in _tierExpeditionKeys[req.Tier])
                     if (!req.Complete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex)))
                         return false;

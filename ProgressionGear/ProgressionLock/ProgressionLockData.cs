@@ -27,6 +27,7 @@ namespace ProgressionGear.ProgressionLock
                     new ProgressionRequirement()
                     {
                         Tier = eRundownTier.TierA,
+                        TierIndex = 1,
                         Main = false,
                         All = true,
                     }
