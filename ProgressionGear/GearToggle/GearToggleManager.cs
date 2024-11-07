@@ -94,7 +94,10 @@ namespace ProgressionGear.ProgressionLock
             _liveEditListener.FileDeleted += FileDeleted;
         }
 
-        internal void Init() { }
+        internal void Init()
+        {
+            MTFOHotReloadAPI.OnHotReload += ResetRelatedIDs;
+        }
 
         public bool IsVisibleID(uint id) => !_relatedIDs.TryGetValue(id, out var relatedIDs) || relatedIDs[0] == id;
         public bool HasRelatedIDs(uint id) => _relatedIDs.ContainsKey(id);

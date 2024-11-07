@@ -22,6 +22,11 @@ namespace ProgressionGear.ProgressionLock
             (InventorySlot.GearClass, new()),
         };
 
+        public void Init()
+        {
+            MTFO.API.MTFOHotReloadAPI.OnHotReload += SetupAllowedGearsForActiveRundown;
+        }
+
         private void ConfigRundownGears()
         {
             if (Configuration.DisableProgression)

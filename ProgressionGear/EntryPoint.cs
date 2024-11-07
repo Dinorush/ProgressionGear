@@ -5,10 +5,11 @@ using ProgressionGear.Utils;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Dependencies;
 using ProgressionGear.Patches;
+using Gear;
 
 namespace ProgressionGear;
 
-[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.2.1")]
+[BepInPlugin("Dinorush." + MODNAME, MODNAME, "1.3.0")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOUtil.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -22,6 +23,8 @@ internal sealed class EntryPoint : BasePlugin
     {
         PWLogger.Log("Loading " + MODNAME);
 
+        MTFO.API.MTFOHotReloadAPI.OnHotReload += FixGearInstanceDict;
+
         Harmony harmony = new(MODNAME);
         harmony.PatchAll();
         if (!LocalProgressionWrapper.HasLocalProgression)
@@ -32,9 +35,16 @@ internal sealed class EntryPoint : BasePlugin
         Configuration.Init();
 
         // Force objects to be initialized to create directories on launch
+        GearLockManager.Current.Init();
         GearToggleManager.Current.Init();
         ProgressionLockManager.Current.Init();
 
         PWLogger.Log("Loaded " + MODNAME);
+    }
+
+    private static void FixGearInstanceDict()
+    {
+        GearManager.Current.m_allGearPerInstanceKey.Clear();
+        GearManager.Current.OnGearLoadingDone();
     }
 }
