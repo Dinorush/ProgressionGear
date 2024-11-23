@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Dependencies;
-using ProgressionGear.Utils;
 
 namespace ProgressionGear.Patches
 {
