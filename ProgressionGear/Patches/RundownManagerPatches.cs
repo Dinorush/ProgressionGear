@@ -1,11 +1,12 @@
-﻿using GameData;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Dependencies;
+using ProgressionGear.Utils;
 
 namespace ProgressionGear.Patches
 {
-    internal static class RundownManagerPatches_EOS
+    [HarmonyPatch]
+    internal static class RundownManagerPatches
     {
         [HarmonyPatch(typeof(RundownManager), nameof(RundownManager.SetActiveExpedition))]
         [HarmonyAfter(EOSWrapper.GUID)]
@@ -14,7 +15,7 @@ namespace ProgressionGear.Patches
         {
             if (expPackage.tier == eRundownTier.Surface) return;
 
-            GearLockManager.Current.LockGearForActiveRundown();
+            GearLockManager.Current.SetupAllowedGearsForActiveRundown();
         }
     }
 }

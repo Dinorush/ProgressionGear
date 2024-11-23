@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
+using EWC.Dependencies;
 
 namespace ProgressionGear.ProgressionLock
 {
@@ -69,10 +70,10 @@ namespace ProgressionGear.ProgressionLock
 
         private GearToggleManager()
         {
-            string DEFINITION_PATH = Path.Combine(MTFOPathAPI.CustomPath, EntryPoint.MODNAME, "GearToggle");
+            string DEFINITION_PATH = Path.Combine(MTFOWrapper.CustomPath, EntryPoint.MODNAME, "GearToggle");
             if (!Directory.Exists(DEFINITION_PATH))
             {
-                PWLogger.Log("No directory detected. Creating " + DEFINITION_PATH + "/Template.json");
+                PWLogger.Log("No GearToggle directory detected. Creating template.");
                 Directory.CreateDirectory(DEFINITION_PATH);
                 var file = File.CreateText(Path.Combine(DEFINITION_PATH, "Template.json"));
                 file.WriteLine(PWJson.Serialize(new List<GearToggleData>() { new() }));
@@ -80,7 +81,7 @@ namespace ProgressionGear.ProgressionLock
                 file.Close();
             }
             else
-                PWLogger.Log("Directory detected. " + DEFINITION_PATH);
+                PWLogger.Log("GearToggle directory detected.");
 
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
@@ -160,20 +161,27 @@ namespace ProgressionGear.ProgressionLock
         {
             if (GearLockManager.Current.VanillaGearManager == null) return;
 
-            foreach (var (inventorySlot, loadedGears) in GearLockManager.Current.GearSlots)
+            while (relatedIDs.Count > 1)
             {
-                // Using the first ID as the intended inventory slot
-                if (!loadedGears.ContainsKey(relatedIDs[0])) continue;
-
-                for (int i = relatedIDs.Count - 1; i >= 1; i--)
+                foreach (var (inventorySlot, loadedGears) in GearLockManager.Current.GearSlots)
                 {
-                    uint id = relatedIDs[i];
-                    if (!loadedGears.ContainsKey(id))
+                    // Using the first ID as the intended inventory slot
+                    if (!loadedGears.ContainsKey(relatedIDs[0])) continue;
+
+                    for (int i = relatedIDs.Count - 1; i >= 1; i--)
                     {
-                        PWLogger.Warning($"ID {id} removed from toggle data {name} since it is not of type {inventorySlot}");
-                        relatedIDs.RemoveAt(i);
+                        uint id = relatedIDs[i];
+                        if (!loadedGears.ContainsKey(id))
+                        {
+                            PWLogger.Warning($"ID {id} removed from toggle data {name} since it is not of type {inventorySlot}");
+                            relatedIDs.RemoveAt(i);
+                        }
                     }
+                    return;
                 }
+                // ID not found on any loaded gear slot. Does not exist.
+                PWLogger.Warning($"ID {relatedIDs[0]} removed from toggle data {name} since it does not exist.");
+                relatedIDs.RemoveAt(0);
             }
         }
     }

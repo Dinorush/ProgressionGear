@@ -1,11 +1,11 @@
 ﻿using ProgressionGear.JSON;
 using ProgressionGear.Utils;
 using GTFO.API.Utilities;
-using MTFO.API;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using EWC.Dependencies;
 
 namespace ProgressionGear.ProgressionLock
 {
@@ -82,10 +82,10 @@ namespace ProgressionGear.ProgressionLock
 
         private ProgressionLockManager()
         {
-            string DEFINITION_PATH = Path.Combine(MTFOPathAPI.CustomPath, EntryPoint.MODNAME, "ProgressionLocks");
+            string DEFINITION_PATH = Path.Combine(MTFOWrapper.CustomPath, EntryPoint.MODNAME, "ProgressionLocks");
             if (!Directory.Exists(DEFINITION_PATH))
             {
-                PWLogger.Log("No directory detected. Creating " + DEFINITION_PATH + "/Template.json");
+                PWLogger.Log("No ProgressionLocks directory detected. Creating template.");
                 Directory.CreateDirectory(DEFINITION_PATH);
                 var file = File.CreateText(Path.Combine(DEFINITION_PATH, "Template.json"));
                 file.WriteLine(PWJson.Serialize(ProgressionLockData.Template));
@@ -93,7 +93,7 @@ namespace ProgressionGear.ProgressionLock
                 file.Close();
             }
             else
-                PWLogger.Log("Directory detected. " + DEFINITION_PATH);
+                PWLogger.Log("ProgressionLocks directory detected.");
 
             foreach (string confFile in Directory.EnumerateFiles(DEFINITION_PATH, "*.json", SearchOption.AllDirectories))
             {
