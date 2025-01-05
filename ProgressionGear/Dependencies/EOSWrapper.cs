@@ -26,8 +26,9 @@ namespace ProgressionGear.Dependencies
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void CacheLocksEOS()
+        private static void CacheLocksEOS()
         {
+            _targetIDs.Clear();
             var expDef = ExpeditionDefinitionManager.Current.GetDefinition(ExpeditionDefinitionManager.Current.CurrentMainLevelLayout);
             if (expDef == null || expDef.ExpeditionGears == null)
             {
