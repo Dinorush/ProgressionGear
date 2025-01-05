@@ -57,7 +57,7 @@ namespace ProgressionGear.ProgressionLock
                         if ((data.explicitLock && !lockData.explicitLock) || data.priority > lockData.priority)
                             continue;
                     }
-                    priorityIDs.Add(id, lockData);
+                    priorityIDs[id] = lockData;
                 }
             }
 
@@ -122,9 +122,9 @@ namespace ProgressionGear.ProgressionLock
         private void ResetPlayerSelectedGears()
         {
             VanillaGearManager!.RescanFavorites();
-            foreach (var gearSlot in GearSlots)
+            foreach (var (inventorySlot, _) in GearSlots)
             {
-                var inventorySlotIndex = (int)gearSlot.inventorySlot;
+                var inventorySlotIndex = (int)inventorySlot;
 
                 if (VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex] != null)
                     PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex]);
@@ -138,9 +138,9 @@ namespace ProgressionGear.ProgressionLock
         // Must be done separate from AddGearForCurrentRundown so that ResetPlayerSelectedGears can still see all allowed gear.
         private void RemoveToggleGears()
         {
-            foreach (var slot in GearSlots)
+            foreach (var (inventorySlot, _) in GearSlots)
             {
-                var gearList = VanillaGearManager!.m_gearPerSlot[(int)slot.inventorySlot];
+                var gearList = VanillaGearManager!.m_gearPerSlot[(int)inventorySlot];
 
                 for (int i = gearList.Count - 1; i >= 0; i--)
                     if (!GearToggleManager.Current.IsVisibleID(gearList[i].GetOfflineID()))
