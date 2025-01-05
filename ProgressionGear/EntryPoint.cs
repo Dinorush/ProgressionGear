@@ -10,7 +10,7 @@ using EWC.Dependencies;
 
 namespace ProgressionGear;
 
-[BepInPlugin(GUID, MODNAME, "1.3.1")]
+[BepInPlugin(GUID, MODNAME, "1.3.2")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
