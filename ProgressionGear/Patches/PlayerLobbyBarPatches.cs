@@ -2,6 +2,7 @@
 using Gear;
 using HarmonyLib;
 using Player;
+using ProgressionGear.Dependencies;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Utils;
 using System;
@@ -13,7 +14,18 @@ namespace ProgressionGear.Patches
     [HarmonyPatch]
     internal static class PlayerLobbyBarPatches
     {
-        public static GameObject? SwapButton;
+        // In some cases (join in progress) SetActiveExpedition doesn't seem to be called? Hopefully this fixes it.
+        [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.ShowWeaponSelectionPopup))]
+        [HarmonyWrapSafe]
+        [HarmonyPrefix]
+        private static void Pre_ShowLoadoutForSlot(CM_PlayerLobbyBar __instance)
+        {
+            uint lastID = ProgressionWrapper.CurrentRundownID;
+            if (!ProgressionWrapper.UpdateReferences() || lastID == ProgressionWrapper.CurrentRundownID) return;
+
+            EOSWrapper.CacheLocks();
+            GearLockManager.Current.SetupAllowedGearsForActiveRundown();
+        }
 
         private static CM_InventorySlotItem? _cachedItem;
         [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.UpdateWeaponWindowInfo))]
@@ -51,6 +63,8 @@ namespace ProgressionGear.Patches
                 }
             }
         }
+
+        public static GameObject? SwapButton;
 
         [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.ShowWeaponSelectionPopup))]
         [HarmonyWrapSafe]
