@@ -53,5 +53,10 @@ namespace ProgressionGear.JSON
         {
             return JsonSerializer.Serialize(value, _settings);
         }
+
+        public static void Serialize<T>(Utf8JsonWriter writer, T value)
+        {
+            JsonSerializer.Serialize(writer, value, _settings);
+        }
     }
 }

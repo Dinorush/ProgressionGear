@@ -65,7 +65,20 @@ namespace ProgressionGear.JSON
 
         public override void Write(Utf8JsonWriter writer, ProgressionLockData? value, JsonSerializerOptions options)
         {
-            JsonSerializer.Serialize(writer, value, options);
+            if (value == null) return;
+
+            writer.WriteStartObject();
+            writer.WritePropertyName(nameof(value.Unlock));
+            PWJson.Serialize(writer, value.Unlock);
+            writer.WriteNumber(nameof(value.UnlockRequired), value.UnlockRequired);
+            writer.WritePropertyName(nameof(value.Lock));
+            PWJson.Serialize(writer, value.Lock);
+            writer.WriteNumber(nameof(value.LockRequired), value.LockRequired);
+            writer.WritePropertyName(nameof(value.OfflineIDs));
+            PWJson.Serialize(writer, value.OfflineIDs);
+            writer.WriteNumber(nameof(value.Priority), value.Priority);
+            writer.WriteString(nameof(value.Name), value.Name);
+            writer.WriteEndObject();
         }
     }
 }
