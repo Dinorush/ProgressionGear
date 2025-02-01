@@ -3,12 +3,13 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using GTFO.API.JSON.Converters;
 using ProgressionGear.Dependencies;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ProgressionGear.JSON
 {
     public static class PWJson
     {
-        private static readonly JsonSerializerOptions _readSettings = new()
+        private static readonly JsonSerializerOptions _settings = new()
         {
             ReadCommentHandling = JsonCommentHandling.Skip,
             IncludeFields = true,
@@ -17,34 +18,40 @@ namespace ProgressionGear.JSON
             IgnoreReadOnlyProperties = true,
         };
 
-        private static readonly JsonSerializerOptions _writeSettings = new(_readSettings);
-
         static PWJson()
         {
-            _readSettings.Converters.Add(new JsonStringEnumConverter());
-            _readSettings.Converters.Add(new LocalizedTextConverter());
-            _readSettings.Converters.Add(new ProgressionRequirementConverter());
+            _settings.Converters.Add(new JsonStringEnumConverter());
+            _settings.Converters.Add(new LocalizedTextConverter());
+            _settings.Converters.Add(new ProgressionRequirementConverter());
+            _settings.Converters.Add(new ProgressionLockDataConverter());
             if (PartialDataWrapper.HasPartialData)
-                _readSettings.Converters.Add(PartialDataWrapper.PersistentIDConverter!);
-
-            foreach (var converter in _readSettings.Converters)
-                _writeSettings.Converters.Add(converter);
-            _writeSettings.Converters.Add(new ProgressionLockDataConverter());
+                _settings.Converters.Add(PartialDataWrapper.PersistentIDConverter!);
         }
 
         public static T? Deserialize<T>(string json)
         {
-            return JsonSerializer.Deserialize<T>(json, _readSettings);
+            return JsonSerializer.Deserialize<T>(json, _settings);
         }
 
         public static object? Deserialize(Type type, string json)
         {
-            return JsonSerializer.Deserialize(json, type, _readSettings);
+            return JsonSerializer.Deserialize(json, type, _settings);
+        }
+
+        public static T? Deserialize<T>(ref Utf8JsonReader reader)
+        {
+            return JsonSerializer.Deserialize<T>(ref reader, _settings);
+        }
+
+        public static bool TryDeserialize<T>(ref Utf8JsonReader reader, [MaybeNullWhen(false)] out T value)
+        {
+            value = Deserialize<T>(ref reader);
+            return value != null;
         }
 
         public static string Serialize<T>(T value)
         {
-            return JsonSerializer.Serialize(value, _writeSettings);
+            return JsonSerializer.Serialize(value, _settings);
         }
     }
 }
