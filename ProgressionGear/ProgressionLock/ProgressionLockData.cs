@@ -32,6 +32,7 @@ namespace ProgressionGear.ProgressionLock
                         All = true,
                     }
                 },
+                UnlockRequired = 2,
                 Lock = new()
                 {
                     new ProgressionRequirement()
@@ -39,6 +40,7 @@ namespace ProgressionGear.ProgressionLock
                         Tier = eRundownTier.TierC
                     }
                 },
+                LockRequired = 0,
                 OfflineIDs = new() {0},
                 Priority = 0,
                 Name = "Example"
