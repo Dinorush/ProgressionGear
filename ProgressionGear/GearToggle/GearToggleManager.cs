@@ -35,6 +35,7 @@ namespace ProgressionGear.ProgressionLock
 
             _fileToData.Remove(e.FullPath);
             ResetRelatedIDs();
+            RefreshLocks();
         }
 
         private void FileCreated(LiveEditEventArgs e)
@@ -66,7 +67,10 @@ namespace ProgressionGear.ProgressionLock
             _fileToData[file] = dataList;
 
             ResetRelatedIDs();
+            RefreshLocks();
         }
+
+        private static void RefreshLocks() => GearLockManager.Current.SetupAllowedGearsForActiveRundown();
 
         private GearToggleManager()
         {
