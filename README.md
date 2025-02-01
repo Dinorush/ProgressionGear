@@ -25,9 +25,11 @@ The custom files are lists of objects which contain:
   - Layout IDs can be numbers or PartialData string IDs.
   - Tiers can be in the formats "TierA" or "B".
   - Levels are specified by Tier + Index (by 1), e.g. "TierA1" or "B3".
+- `UnlockRequired`: The number of unlock requirements that must be completed to unlock the gear. If 0, requires all of them.
 - `Lock`: A list of level layout IDs, tiers, levels, or full requirement objects that must be completed to lock the gear.
+- `UnlockRequired`: The number of lock requirements that must be completed to lock the gear. If 0, requires all of them.
 - `OfflineIDs`: A list of PlayerOfflineGear IDs these unlocks/locks apply to.
-- `Priority`: Specifies the priority of this unlock/lock. If two different blocks lock/unlock the same gear, the highest priority's lock/unlock is used.
+- `Priority`: Specifies the priority of this unlock/lock. If two different blocks unlock/lock the same gear, the highest priority's unlock/lock is used.
 - `Name`: Serves no practical purpose, but can be handy for organizing/debugging as a developer.
 
 You may use a requirement object if you wish to specify sector completions. They contain the fields:
