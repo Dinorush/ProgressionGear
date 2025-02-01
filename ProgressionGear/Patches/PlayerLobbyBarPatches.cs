@@ -2,6 +2,7 @@
 using Gear;
 using HarmonyLib;
 using Player;
+using ProgressionGear.Dependencies;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Utils;
 using System;
@@ -15,6 +16,7 @@ namespace ProgressionGear.Patches
     {
         // In some cases (join in progress) SetActiveExpedition doesn't seem to be called? Hopefully this fixes it.
         [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.ShowWeaponSelectionPopup))]
+        [HarmonyAfter(EOSWrapper.GUID)] // EOS doesn't patch this, but futureproofing JFS
         [HarmonyWrapSafe]
         [HarmonyPrefix]
         private static void Pre_ShowLoadoutForSlot()

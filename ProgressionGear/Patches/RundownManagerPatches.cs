@@ -9,6 +9,7 @@ namespace ProgressionGear.Patches
     {
         [HarmonyPatch(typeof(RundownManager), nameof(RundownManager.SetActiveExpedition))]
         [HarmonyAfter(EOSWrapper.GUID)]
+        [HarmonyWrapSafe]
         [HarmonyPostfix]
         private static void Post_RundownManager_SetActiveExpedition(pActiveExpedition expPackage)
         {
