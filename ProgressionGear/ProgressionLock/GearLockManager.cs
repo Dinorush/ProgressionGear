@@ -30,11 +30,10 @@ namespace ProgressionGear.ProgressionLock
 
         private void ConfigRundownGears()
         {
-            if (Configuration.DisableProgression)
-                return;
-
             _lockedGearIds.Clear();
             GearToggleManager.Current.ResetRelatedIDs();
+            if (Configuration.DisableProgression)
+                return;
 
             // Acquire all progression-locked/-unlocked weapons
             IEnumerator<ProgressionLockData> dataEnum = ProgressionLockManager.Current.GetEnumerator();
@@ -152,6 +151,7 @@ namespace ProgressionGear.ProgressionLock
         {
             if (!ProgressionWrapper.UpdateReferences()) return;
 
+            EOSWrapper.CacheLocks();
             ConfigRundownGears();
             ClearLoadedGears();
             AddGearForCurrentRundown();
@@ -163,8 +163,8 @@ namespace ProgressionGear.ProgressionLock
         // If unlock requirements are met, it can still be explicitly locked by lock requirements.
         private static bool IsGearLocked(ProgressionLockData data)
         {
-            bool locked = (data.Unlock.Any() && !data.Unlock.All(IsComplete))
-                       || (data.Lock.Any() && data.Lock.All(IsComplete));
+            bool locked = (data.Unlock.Any() && !IsComplete(data.Unlock, data.UnlockRequired))
+                       || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired));
 
             return locked;
         }
@@ -173,8 +173,13 @@ namespace ProgressionGear.ProgressionLock
         // Conversely, an implicit lock occurs when unlock requirements are set but no requirements are fulfilled.
         private static bool IsLockExplicit(ProgressionLockData data)
         {
-            return data.Unlock.All(IsComplete)
-                || (data.Lock.Any() && data.Lock.All(IsComplete));
+            return IsComplete(data.Unlock, data.UnlockRequired)
+                || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired));
+        }
+
+        private static bool IsComplete(List<ProgressionRequirement> list, int require)
+        {
+            return (require == 0 && list.All(IsComplete)) || (require > 0 && list.Count(IsComplete) >= require);
         }
 
         private static bool IsComplete(ProgressionRequirement req) => ProgressionWrapper.IsComplete(req);

@@ -59,24 +59,6 @@ namespace ProgressionGear.ProgressionLock
 
             if (dataList == null) return;
 
-            foreach (var data in dataList)
-            {
-                if (!data.Unlock.Any())
-                {
-                    data.Unlock.AddRange(data.UnlockLayoutIDs);
-                    data.Unlock.AddRange(data.UnlockTiers);
-                    data.UnlockLayoutIDs.Clear();
-                    data.UnlockTiers.Clear();
-                }
-                if (!data.Lock.Any())
-                {
-                    data.Lock.AddRange(data.LockLayoutIDs);
-                    data.Lock.AddRange(data.LockTiers);
-                    data.LockLayoutIDs.Clear();
-                    data.LockTiers.Clear();
-                }
-            }
-
             _fileToData[file] = dataList;
         }
 

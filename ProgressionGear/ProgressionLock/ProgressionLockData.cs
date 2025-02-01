@@ -49,12 +49,10 @@ namespace ProgressionGear.ProgressionLock
             }
         };
 
-        public List<ProgressionRequirement> UnlockLayoutIDs { get; set; } = new();
-        public List<ProgressionRequirement> UnlockTiers { get; set; } = new();
         public List<ProgressionRequirement> Unlock { get; set; } = new();
-        public List<ProgressionRequirement> LockLayoutIDs { get; set; } = new();
-        public List<ProgressionRequirement> LockTiers { get; set; } = new();
+        public int UnlockRequired = 0;
         public List<ProgressionRequirement> Lock { get; set; } = new();
+        public int LockRequired = 0;
         public List<uint> OfflineIDs { get; set; } = new();
         public int Priority { get; set; } = 0;
         public string Name { get; set; } = string.Empty;

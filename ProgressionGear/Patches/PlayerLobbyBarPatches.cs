@@ -2,7 +2,6 @@
 using Gear;
 using HarmonyLib;
 using Player;
-using ProgressionGear.Dependencies;
 using ProgressionGear.ProgressionLock;
 using ProgressionGear.Utils;
 using System;
@@ -23,7 +22,6 @@ namespace ProgressionGear.Patches
             uint lastID = ProgressionWrapper.CurrentRundownID;
             if (!ProgressionWrapper.UpdateReferences() || lastID == ProgressionWrapper.CurrentRundownID) return;
 
-            EOSWrapper.CacheLocks();
             GearLockManager.Current.SetupAllowedGearsForActiveRundown();
         }
 

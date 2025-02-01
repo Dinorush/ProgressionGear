@@ -14,7 +14,6 @@ namespace ProgressionGear.Patches
         {
             if (expPackage.tier == eRundownTier.Surface) return;
 
-            EOSWrapper.CacheLocks();
             GearLockManager.Current.SetupAllowedGearsForActiveRundown();
         }
     }
