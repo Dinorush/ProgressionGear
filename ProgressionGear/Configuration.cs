@@ -2,6 +2,7 @@
 using BepInEx;
 using System.IO;
 using GTFO.API.Utilities;
+using ProgressionGear.ProgressionLock;
 
 namespace ProgressionGear
 {
@@ -25,7 +26,11 @@ namespace ProgressionGear
         private static void OnFileChanged(LiveEditEventArgs _)
         {
             _configFile.Reload();
+            bool disabled = DisableProgression;
             DisableProgression = (bool)_configFile["Override", "Disable Progression Locks"].BoxedValue;
+
+            if (disabled != DisableProgression)
+                GearLockManager.Current.SetupAllowedGearsForActiveRundown();
         }
 
         private static void BindAll(ConfigFile config)

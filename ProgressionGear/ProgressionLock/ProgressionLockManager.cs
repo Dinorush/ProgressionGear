@@ -31,6 +31,7 @@ namespace ProgressionGear.ProgressionLock
             PWLogger.Warning($"LiveEdit File Removed: {e.FullPath}");
 
             _fileToData.Remove(e.FullPath);
+            RefreshLocks();
         }
 
         private void FileCreated(LiveEditEventArgs e)
@@ -60,7 +61,10 @@ namespace ProgressionGear.ProgressionLock
             if (dataList == null) return;
 
             _fileToData[file] = dataList;
+            RefreshLocks();
         }
+
+        private static void RefreshLocks() => GearLockManager.Current.SetupAllowedGearsForActiveRundown();
 
         private ProgressionLockManager()
         {
