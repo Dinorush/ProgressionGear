@@ -18,7 +18,7 @@ namespace ProgressionGear.Patches
         [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.ShowWeaponSelectionPopup))]
         [HarmonyWrapSafe]
         [HarmonyPrefix]
-        private static void Pre_ShowLoadoutForSlot(CM_PlayerLobbyBar __instance)
+        private static void Pre_ShowLoadoutForSlot()
         {
             uint lastID = ProgressionWrapper.CurrentRundownID;
             if (!ProgressionWrapper.UpdateReferences() || lastID == ProgressionWrapper.CurrentRundownID) return;
