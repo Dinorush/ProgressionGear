@@ -125,12 +125,19 @@ namespace ProgressionGear.ProgressionLock
             {
                 var inventorySlotIndex = (int)inventorySlot;
 
-                if (VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex] != null)
-                    PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex]);
-                else if (VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex].Count > 0)
-                    PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex][0]);
-                else if (VanillaGearManager.m_gearPerSlot[inventorySlotIndex].Count > 0)
-                    PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_gearPerSlot[inventorySlotIndex][0]);
+                try
+                {
+                    if (VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex] != null)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_lastEquippedGearPerSlot[inventorySlotIndex]);
+                    else if (VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex].Count > 0)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_favoriteGearPerSlot[inventorySlotIndex][0]);
+                    else if (VanillaGearManager.m_gearPerSlot[inventorySlotIndex].Count > 0)
+                        PlayerBackpackManager.EquipLocalGear(VanillaGearManager.m_gearPerSlot[inventorySlotIndex][0]);
+                }
+                catch (Il2CppInterop.Runtime.Il2CppException e)
+                {
+                    PWLogger.Error("Error attempting to equip gear for slot " + inventorySlot + ":\n" + e.StackTrace);
+                }
             }
         }
 
