@@ -8,6 +8,7 @@ Gear Toggling allows gear to occupy the same slot in the loadout selection scree
 
 The custom files are lists of objects which contain:
 - `OfflineIDs`: A list of PlayerOfflineGear IDs that are swapped between.
+- `ButtonText`: The text to display on the button.
 - `Name`: Serves no practical purpose, but can be handy for organizing/debugging as a developer.
 
 The first ID in the list is the default weapon that appears; all others are hidden. Gear is swapped in the order of the list. The first ID in the list also determines the gear type (Main, Special, Tool, Melee). There are two rules for IDs:
