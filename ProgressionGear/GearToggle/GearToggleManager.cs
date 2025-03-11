@@ -16,7 +16,7 @@ namespace ProgressionGear.ProgressionLock
         public static readonly GearToggleManager Current = new();
 
         private readonly Dictionary<string, List<GearToggleData>> _fileToData = new();
-        private readonly Dictionary<uint, List<uint>> _relatedIDs = new();
+        private readonly Dictionary<uint, ToggleInfo> _toggleInfos = new();
 
         private readonly LiveEditListener _liveEditListener;
 
@@ -34,7 +34,7 @@ namespace ProgressionGear.ProgressionLock
             PWLogger.Warning($"LiveEdit File Removed: {e.FullPath}");
 
             _fileToData.Remove(e.FullPath);
-            ResetRelatedIDs();
+            ResetToggleInfos();
             RefreshLocks();
         }
 
@@ -66,7 +66,7 @@ namespace ProgressionGear.ProgressionLock
 
             _fileToData[file] = dataList;
 
-            ResetRelatedIDs();
+            ResetToggleInfos();
             RefreshLocks();
         }
 
@@ -101,13 +101,13 @@ namespace ProgressionGear.ProgressionLock
 
         internal void Init()
         {
-            MTFOHotReloadAPI.OnHotReload += ResetRelatedIDs;
+            MTFOHotReloadAPI.OnHotReload += ResetToggleInfos;
         }
 
-        public bool IsVisibleID(uint id) => !_relatedIDs.TryGetValue(id, out var relatedIDs) || relatedIDs[0] == id;
-        public bool HasRelatedIDs(uint id) => _relatedIDs.ContainsKey(id);
-        public List<uint>? GetRelatedIDs(uint id) => _relatedIDs.GetValueOrDefault(id);
-        public bool TryGetRelatedIDs(uint id, [MaybeNullWhen(false)] out List<uint> relatedIDs) => _relatedIDs.TryGetValue(id, out relatedIDs);
+        public bool IsVisibleID(uint id) => !_toggleInfos.TryGetValue(id, out var toggleInfo) || toggleInfo.ids[0] == id;
+        public bool HasRelatedIDs(uint id) => _toggleInfos.ContainsKey(id);
+        public ToggleInfo GetToggleInfo(uint id) => _toggleInfos.GetValueOrDefault(id);
+        public bool TryGetToggleInfo(uint id, [MaybeNullWhen(false)] out ToggleInfo toggleInfo) => _toggleInfos.TryGetValue(id, out toggleInfo);
 
         public List<GearToggleData> GetData()
         {
@@ -120,19 +120,19 @@ namespace ProgressionGear.ProgressionLock
 
         public IEnumerator<GearToggleData> GetEnumerator() => new DictListEnumerator<GearToggleData>(_fileToData);
 
-        public void RemoveFromRelatedIDs(uint id)
+        public void RemoveFromToggleInfos(uint id)
         {
-            if (!_relatedIDs.TryGetValue(id, out List<uint>? relatedIDs)) return;
+            if (!_toggleInfos.TryGetValue(id, out ToggleInfo toggleInfo)) return;
 
-            relatedIDs.Remove(id);
-            if (relatedIDs.Count == 1)
-                _relatedIDs.Remove(relatedIDs[0]);
-            _relatedIDs.Remove(id);
+            toggleInfo.ids.Remove(id);
+            if (toggleInfo.ids.Count == 1)
+                _toggleInfos.Remove(toggleInfo.ids[0]);
+            _toggleInfos.Remove(id);
         }
 
-        public void ResetRelatedIDs()
+        public void ResetToggleInfos()
         {
-            _relatedIDs.Clear();
+            _toggleInfos.Clear();
             HashSet<uint> seen = new();
 
             var enumerator = GetEnumerator();
@@ -156,8 +156,9 @@ namespace ProgressionGear.ProgressionLock
                 RemoveInvalidGear(relatedIDs, data.Name);
                 if (relatedIDs.Count <= 1) continue;
 
+                ToggleInfo toggleInfo = new() { ids = relatedIDs, text = data.ButtonText };
                 foreach (uint id in relatedIDs)
-                    _relatedIDs[id] = relatedIDs;
+                    _toggleInfos[id] = toggleInfo;
             }
         }
 
@@ -188,5 +189,11 @@ namespace ProgressionGear.ProgressionLock
                 relatedIDs.RemoveAt(0);
             }
         }
+    }
+
+    public struct ToggleInfo
+    {
+        public List<uint> ids;
+        public Localization.LocalizedText text;
     }
 }

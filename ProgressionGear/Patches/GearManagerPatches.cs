@@ -23,7 +23,7 @@ namespace ProgressionGear.Patches
                     loadedGears.TryAdd(playerOfflineDBPID, gearIDRange);
                 }
             }
-            GearToggleManager.Current.ResetRelatedIDs();
+            GearToggleManager.Current.ResetToggleInfos();
         }
     }
 }

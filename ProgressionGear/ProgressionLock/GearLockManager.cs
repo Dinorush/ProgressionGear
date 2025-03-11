@@ -31,7 +31,7 @@ namespace ProgressionGear.ProgressionLock
         private void ConfigRundownGears()
         {
             _lockedGearIds.Clear();
-            GearToggleManager.Current.ResetRelatedIDs();
+            GearToggleManager.Current.ResetToggleInfos();
             if (Configuration.DisableProgression)
                 return;
 
@@ -64,7 +64,7 @@ namespace ProgressionGear.ProgressionLock
             foreach (var kv in priorityIDs.Where(kv => kv.Value.locked))
             {
                 _lockedGearIds.Add(kv.Key);
-                GearToggleManager.Current.RemoveFromRelatedIDs(kv.Key);
+                GearToggleManager.Current.RemoveFromToggleInfos(kv.Key);
             }
         }
 

@@ -48,12 +48,12 @@ namespace ProgressionGear.Patches
             if (!PlayerBackpackManager.TryGetItem(__instance.m_player, slot, out var bpItem) || bpItem.GearIDRange == null) return;
             
             uint bpID = bpItem.GearIDRange.GetOfflineID();
-            if (!GearToggleManager.Current.TryGetRelatedIDs(bpID, out var relatedIDs)) return;
+            if (!GearToggleManager.Current.TryGetToggleInfo(bpID, out var toggleInfo)) return;
 
             foreach (var content in __instance.m_popupScrollWindow.ContentItems)
             {
                 CM_InventorySlotItem slotItem = content.TryCast<CM_InventorySlotItem>()!;
-                if (relatedIDs.Contains(slotItem.m_gearID.GetOfflineID()))
+                if (toggleInfo.ids.Contains(slotItem.m_gearID.GetOfflineID()))
                 {
                     slotItem.IsPicked = true;
                     slotItem.LoadData(bpItem.GearIDRange, true, true);
@@ -64,7 +64,8 @@ namespace ProgressionGear.Patches
             }
         }
 
-        public static GameObject? SwapButton;
+        private static GameObject? _swapButton;
+        private static TMPro.TextMeshPro? _swapText;
 
         [HarmonyPatch(typeof(CM_PlayerLobbyBar), nameof(CM_PlayerLobbyBar.ShowWeaponSelectionPopup))]
         [HarmonyWrapSafe]
@@ -73,9 +74,10 @@ namespace ProgressionGear.Patches
         {
             CM_ScrollWindowInfoBox infoBox = __instance.m_popupScrollWindow.InfoBox;
             // Need to instantiate a new button every time since the window is instantiated every time
-            SwapButton = GameObject.Instantiate(CM_PageLoadout.Current.m_copyLobbyIdButton.gameObject, infoBox.transform);
-            CM_Item item = SwapButton.GetComponent<CM_Item>();
-            item.m_texts[0].SetText("Switch Gear");
+            _swapButton = GameObject.Instantiate(CM_PageLoadout.Current.m_copyLobbyIdButton.gameObject, infoBox.transform);
+            CM_Item item = _swapButton.GetComponent<CM_Item>();
+            _swapText = item.m_texts[0];
+            _swapText.SetText("Switch Gear");
             item.transform.localPosition = new(-300, -320, -1);
 
             item.OnBtnPressCallback = null;
@@ -85,7 +87,7 @@ namespace ProgressionGear.Patches
                 if (slotItem == null) return;
 
                 uint offlineID = slotItem.m_gearID.GetOfflineID();
-                List<uint> relatedIDs = GearToggleManager.Current.GetRelatedIDs(offlineID)!;
+                List<uint> relatedIDs = GearToggleManager.Current.GetToggleInfo(offlineID)!.ids;
 
                 uint nextID = relatedIDs[(relatedIDs.IndexOf(offlineID) + 1) % relatedIDs.Count];
                 if (GearManager.TryGetGear("OfflineGear_ID_" + nextID, out var newRange))
@@ -107,10 +109,17 @@ namespace ProgressionGear.Patches
         [HarmonyPostfix]
         private static void Post_LoadoutItemSelected(CM_InventorySlotItem slotItem)
         {
-            if (SwapButton == null) return;
+            if (_swapButton == null) return;
 
             uint id = slotItem.m_gearID.GetOfflineID();
-            SwapButton.SetActive(GearToggleManager.Current.HasRelatedIDs(id));
+
+            if (GearToggleManager.Current.TryGetToggleInfo(id, out var toggleInfo))
+            {
+                _swapButton.SetActive(true);
+                _swapText!.SetText(toggleInfo.text);
+            }
+            else
+                _swapButton.SetActive(false);
         }
     }
 }
