@@ -1,6 +1,6 @@
 ﻿using MTFO.API;
 
-namespace EWC.Dependencies
+namespace ProgressionGear.Dependencies
 {
     internal static class MTFOWrapper
     {

@@ -6,11 +6,10 @@ using ProgressionGear.ProgressionLock;
 using ProgressionGear.Dependencies;
 using ProgressionGear.Patches;
 using Gear;
-using EWC.Dependencies;
 
 namespace ProgressionGear;
 
-[BepInPlugin(GUID, MODNAME, "1.5.0")]
+[BepInPlugin(GUID, MODNAME, "1.5.1")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]

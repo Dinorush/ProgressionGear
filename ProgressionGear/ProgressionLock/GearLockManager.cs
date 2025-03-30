@@ -170,8 +170,8 @@ namespace ProgressionGear.ProgressionLock
         // If unlock requirements are met, it can still be explicitly locked by lock requirements.
         private static bool IsGearLocked(ProgressionLockData data)
         {
-            bool locked = (data.Unlock.Any() && !IsComplete(data.Unlock, data.UnlockRequired))
-                       || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired));
+            bool locked = (data.Unlock.Any() && !IsComplete(data.Unlock, data.UnlockRequired, data.MissingLevelDefault))
+                       || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired, data.MissingLevelDefault));
 
             return locked;
         }
@@ -180,15 +180,31 @@ namespace ProgressionGear.ProgressionLock
         // Conversely, an implicit lock occurs when unlock requirements are set but no requirements are fulfilled.
         private static bool IsLockExplicit(ProgressionLockData data)
         {
-            return IsComplete(data.Unlock, data.UnlockRequired)
-                || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired));
+            return IsComplete(data.Unlock, data.UnlockRequired, data.MissingLevelDefault)
+                || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired, data.MissingLevelDefault));
         }
 
-        private static bool IsComplete(List<ProgressionRequirement> list, int require)
+        private static bool IsComplete(List<ProgressionRequirement> list, int require, bool valueIfNone)
         {
-            return (require == 0 && list.All(IsComplete)) || (require > 0 && list.Count(IsComplete) >= require);
+            if (require == 0)
+            {
+                foreach (var req in list)
+                    if (!IsComplete(req, valueIfNone))
+                        return false;
+            }
+            else
+            {
+                foreach (var req in list)
+                {
+                    if (IsComplete(req, valueIfNone))
+                        require--;
+
+                    if (require == 0) break;
+                }
+            }
+            return require == 0;
         }
 
-        private static bool IsComplete(ProgressionRequirement req) => ProgressionWrapper.IsComplete(req);
+        private static bool IsComplete(ProgressionRequirement req, bool valueIfNone) => ProgressionWrapper.IsComplete(req, valueIfNone);
     }
 }

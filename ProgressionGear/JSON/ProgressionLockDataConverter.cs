@@ -45,6 +45,10 @@ namespace ProgressionGear.JSON
                         if (reader.TokenType != JsonTokenType.Number) throw new JsonException("Expected number for LockRequired");
                         data.LockRequired = reader.GetInt32();
                         break;
+                    case "missingleveldefault":
+                        if (reader.TokenType != JsonTokenType.True && reader.TokenType != JsonTokenType.False) throw new JsonException("Expected boolean for MissingLevelDefault");
+                        data.MissingLevelDefault = reader.GetBoolean();
+                        break;
                     case "offlineids":
                         if (PWJson.TryDeserialize<List<uint>>(ref reader, out var ids))
                             data.OfflineIDs = ids;

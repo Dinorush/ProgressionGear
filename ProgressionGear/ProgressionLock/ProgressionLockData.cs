@@ -55,6 +55,7 @@ namespace ProgressionGear.ProgressionLock
         public int UnlockRequired = 0;
         public List<ProgressionRequirement> Lock { get; set; } = new();
         public int LockRequired = 0;
+        public bool MissingLevelDefault { get; set; } = true;
         public List<uint> OfflineIDs { get; set; } = new();
         public int Priority { get; set; } = 0;
         public string Name { get; set; } = string.Empty;

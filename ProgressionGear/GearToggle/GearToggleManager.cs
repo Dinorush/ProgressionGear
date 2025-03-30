@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Diagnostics.CodeAnalysis;
-using EWC.Dependencies;
+using ProgressionGear.Dependencies;
 
 namespace ProgressionGear.ProgressionLock
 {

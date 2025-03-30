@@ -1,5 +1,6 @@
 ﻿using GameData;
 using ProgressionGear.Dependencies;
+using ProgressionGear.Utils;
 using System.Collections.Generic;
 
 namespace ProgressionGear.ProgressionLock
@@ -103,20 +104,28 @@ namespace ProgressionGear.ProgressionLock
             return _nativeProgression[tier][index];
         }
 
-        public static bool IsComplete(ProgressionRequirement req)
+        public static bool IsComplete(ProgressionRequirement req, bool valueIfNone = true)
         {
             UpdateReferences();
             if (req.LevelLayoutID != 0)
             {
                 if (!_layoutToExpedition.ContainsKey(req.LevelLayoutID))
-                    return true;
+                    return valueIfNone;
                 ExpeditionKey key = _layoutToExpedition[req.LevelLayoutID];
                 return req.Complete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex));
             }
             else if (req.Tier != eRundownTier.Surface)
             {
-                if (req.TierIndex >= 0 && req.TierIndex < _tierExpeditionKeys[req.Tier].Count)
-                    return req.Complete(GetProgressionData(CurrentRundownID, req.Tier, req.TierIndex));
+                if (!_tierExpeditionKeys.ContainsKey(req.Tier))
+                    return valueIfNone;
+
+                if (req.TierIndex >= 0)
+                {
+                    if (req.TierIndex < _tierExpeditionKeys[req.Tier].Count)
+                        return req.Complete(GetProgressionData(CurrentRundownID, req.Tier, req.TierIndex));
+                    else
+                        return valueIfNone;
+                }
 
                 foreach (ExpeditionKey key in _tierExpeditionKeys[req.Tier])
                     if (!req.Complete(GetProgressionData(CurrentRundownID, key.tier, key.expIndex)))
