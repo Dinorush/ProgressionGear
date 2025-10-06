@@ -56,6 +56,7 @@ namespace ProgressionGear.ProgressionLock
                         if ((data.explicitLock && !lockData.explicitLock) || data.priority > lockData.priority)
                             continue;
                     }
+
                     priorityIDs[id] = lockData;
                 }
             }
@@ -104,7 +105,11 @@ namespace ProgressionGear.ProgressionLock
 
                 foreach (uint id in loadedGears.Keys)
                 {
-                    if (IsGearAllowed(id) && EOSWrapper.IsGearAllowed(id))
+                    if (!EOSWrapper.IsGearAllowed(id))
+                    {
+                        GearToggleManager.Current.RemoveFromToggleInfos(id);
+                    }
+                    else if (IsGearAllowed(id))
                     {
                         vanillaSlot.Add(loadedGears[id]);
                     }
