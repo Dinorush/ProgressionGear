@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using GTFO.API.Utilities;
 using ProgressionGear.ProgressionLock;
+using System;
 using System.IO;
 
 namespace ProgressionGear
@@ -14,12 +15,14 @@ namespace ProgressionGear
         public static bool ToggleBlink => _toggleBlink.Value;
 
         private static readonly ConfigFile _configFile;
+        private static bool _disabled = false;
 
         static Configuration()
         {
             _configFile = new ConfigFile(Path.Combine(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg"), saveOnInit: true);
             string section = "Override";
             _disableProgression = _configFile.Bind(section, "Disable Progression Locks", false, "Disables progression-locking for weapons.");
+            _disabled = _disableProgression.Value;
 
             section = "General Settings";
             _toggleBlink = _configFile.Bind(section, "Toggle Blink", true, "Enables the blinking effect on gear toggle buttons.");
@@ -27,16 +30,17 @@ namespace ProgressionGear
 
         public static void Init()
         {
-            LiveEdit.CreateListener(Paths.ConfigPath, EntryPoint.MODNAME + ".cfg", false).FileChanged += OnFileChanged;
+            SafeFileSystemWatcher.Create(_configFile);
+            _configFile.ConfigReloaded += OnFileChanged;
         }
 
-        private static void OnFileChanged(LiveEditEventArgs _)
+        private static void OnFileChanged(object? sender, EventArgs e)
         {
-            bool disabled = DisableProgression;
-            _configFile.Reload();
-
-            if (disabled != DisableProgression)
+            if (_disabled != DisableProgression)
+            {
+                _disabled = !_disabled;
                 GearLockManager.Current.SetupAllowedGearsForActiveRundown();
+            }
         }
     }
 }

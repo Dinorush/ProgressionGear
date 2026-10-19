@@ -15,32 +15,34 @@ namespace ProgressionGear.ProgressionLock
 
         private readonly Dictionary<string, List<ProgressionLockData>> _fileToData = new();
 
-        private readonly LiveEditListener _liveEditListener;
-
-        private void FileChanged(LiveEditEventArgs e)
+        private void FileChanged(FileEventArgs e)
         {
-            DinoLogger.Warning($"LiveEdit File Changed: {e.FullPath}");
-            LiveEdit.TryReadFileContent(e.FullPath, (content) =>
-            {
-                ReadFileContent(e.FullPath, content);
-            });
+            DinoLogger.Warning($"File Changed: {e.FullPath}");
+            ReadFileContent(e.FullPath, e.ReadContent());
         }
 
-        private void FileDeleted(LiveEditEventArgs e)
+        private void FileDeleted(FileEventArgs e)
         {
-            DinoLogger.Warning($"LiveEdit File Removed: {e.FullPath}");
+            DinoLogger.Warning($"File Removed: {e.FullPath}");
 
             _fileToData.Remove(e.FullPath);
             RefreshLocks();
         }
 
-        private void FileCreated(LiveEditEventArgs e)
+        private void FileCreated(FileEventArgs e)
         {
-            DinoLogger.Warning($"LiveEdit File Created: {e.FullPath}");
-            LiveEdit.TryReadFileContent(e.FullPath, (content) =>
+            DinoLogger.Warning($"File Created: {e.FullPath}");
+            ReadFileContent(e.FullPath, e.ReadContent());
+        }
+
+        private void FileRenamed(FileRenamedEventArgs e)
+        {
+            DinoLogger.Warning($"File Renamed: {e.OldFileName} -> {e.FileName}");
+            if (_fileToData.TryGetValue(e.OldFullPath, out var dataList))
             {
-                ReadFileContent(e.FullPath, content);
-            });
+                _fileToData.Remove(e.OldFullPath);
+                _fileToData[e.FullPath] = dataList;
+            }
         }
 
         private void ReadFileContent(string file, string content)
@@ -87,10 +89,11 @@ namespace ProgressionGear.ProgressionLock
                 ReadFileContent(confFile, content);
             }
 
-            _liveEditListener = LiveEdit.CreateListener(DEFINITION_PATH, "*.json", true);
-            _liveEditListener.FileCreated += FileCreated;
-            _liveEditListener.FileChanged += FileChanged;
-            _liveEditListener.FileDeleted += FileDeleted;
+            var sfsw = SafeFileSystemWatcher.Create(DEFINITION_PATH, new string[] { "*.json" }, true);
+            sfsw.OnCreated += FileCreated;
+            sfsw.OnChanged += FileChanged;
+            sfsw.OnDeleted += FileDeleted;
+            sfsw.OnRenamed += FileRenamed;
         }
 
         internal void Init() { }

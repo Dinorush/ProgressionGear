@@ -9,12 +9,13 @@ using ProgressionGear.GearToggle;
 
 namespace ProgressionGear;
 
-[BepInPlugin(GUID, MODNAME, "1.6.4")]
+[BepInPlugin(GUID, MODNAME, "1.6.5")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(LocalProgressionWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
-[BepInDependency(EOSWrapper.GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(EOSWrapper.INAS_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(EOSWrapper.AMOR_GUID, BepInDependency.DependencyFlags.SoftDependency)]
 internal sealed class EntryPoint : BasePlugin
 {
     public const string GUID = "Dinorush." + MODNAME;
