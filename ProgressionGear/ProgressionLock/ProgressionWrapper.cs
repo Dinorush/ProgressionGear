@@ -1,6 +1,5 @@
 ﻿using GameData;
 using ProgressionGear.Dependencies;
-using ProgressionGear.Utils;
 using System.Collections.Generic;
 
 namespace ProgressionGear.ProgressionLock
@@ -25,6 +24,7 @@ namespace ProgressionGear.ProgressionLock
             };
             _nativeProgression = new Dictionary<eRundownTier, List<ProgressionData>>();
             CurrentRundownID = 0;
+            MTFO.API.MTFOHotReloadAPI.OnHotReload += CacheLevelLayouts;
         }
 
         private struct ExpeditionKey
@@ -41,6 +41,19 @@ namespace ProgressionGear.ProgressionLock
             return rundownID;
         }
 
+        internal static void CacheLevelLayouts()
+        {
+            _layoutToExpedition.Clear();
+            foreach (var block in RundownDataBlock.GetAllBlocks())
+            {
+                AddLevelLayouts(eRundownTier.TierA, block.TierA);
+                AddLevelLayouts(eRundownTier.TierB, block.TierB);
+                AddLevelLayouts(eRundownTier.TierC, block.TierC);
+                AddLevelLayouts(eRundownTier.TierD, block.TierD);
+                AddLevelLayouts(eRundownTier.TierE, block.TierE);
+            }
+        }
+
         public static bool UpdateReferences()
         {
             uint rundownID = ActiveRundownID();
@@ -48,15 +61,12 @@ namespace ProgressionGear.ProgressionLock
             if (CurrentRundownID == rundownID) return true;
 
             CurrentRundownID = rundownID;
-            _layoutToExpedition.Clear();
             RundownDataBlock block = RundownDataBlock.GetBlock(CurrentRundownID);
-
-            AddTierLayouts(eRundownTier.TierA, block.TierA);
-            AddTierLayouts(eRundownTier.TierB, block.TierB);
-            AddTierLayouts(eRundownTier.TierC, block.TierC);
-            AddTierLayouts(eRundownTier.TierD, block.TierD);
-            AddTierLayouts(eRundownTier.TierE, block.TierE);
-
+            AddTierIndices(eRundownTier.TierA, block.TierA);
+            AddTierIndices(eRundownTier.TierB, block.TierB);
+            AddTierIndices(eRundownTier.TierC, block.TierC);
+            AddTierIndices(eRundownTier.TierD, block.TierD);
+            AddTierIndices(eRundownTier.TierE, block.TierE);
             return true;
         }
 
@@ -76,7 +86,20 @@ namespace ProgressionGear.ProgressionLock
             nativeDatas[expIndex] = data;
         }
 
-        private static void AddTierLayouts(eRundownTier tier, Il2CppSystem.Collections.Generic.List<ExpeditionInTierData> dataList)
+        private static void AddLevelLayouts(eRundownTier tier, Il2CppSystem.Collections.Generic.List<ExpeditionInTierData> dataList)
+        {
+            for (int i = 0; i < dataList.Count; i++)
+            {
+                ExpeditionInTierData data = dataList[i];
+                if (!data.Enabled)
+                    continue;
+
+                ExpeditionKey key = new() { tier = tier, expIndex = i };
+                _layoutToExpedition.TryAdd(data.LevelLayoutData, key);
+            }
+        }
+
+        private static void AddTierIndices(eRundownTier tier, Il2CppSystem.Collections.Generic.List<ExpeditionInTierData> dataList)
         {
             // Stores info needed to get expeditions for tiers and level layouts for easy access later
             _tierExpeditionKeys[tier].Clear();
@@ -87,7 +110,6 @@ namespace ProgressionGear.ProgressionLock
                     continue;
 
                 ExpeditionKey key = new() { tier = tier, expIndex = i };
-                _layoutToExpedition.TryAdd(data.LevelLayoutData, key);
                 _tierExpeditionKeys[tier].Add(key);
             }
         }

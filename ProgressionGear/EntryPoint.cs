@@ -44,6 +44,7 @@ internal sealed class EntryPoint : BasePlugin
         GearToggleManager.Current.Init();
         ProgressionLockManager.Current.Init();
         LevelLockManager.Current.Init();
+        GTFO.API.GameDataAPI.OnGameDataInitialized += ProgressionWrapper.CacheLevelLayouts;
 
         DinoLogger.Log("Loaded " + MODNAME);
     }
