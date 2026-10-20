@@ -14,9 +14,6 @@ namespace ProgressionGear.Dependencies
         public static bool HasEOS { get; private set; }
         private readonly static bool _isAmor = false;
 
-        private readonly static HashSet<uint> _targetIDs = new();
-        private static bool _allow = false;
-
         static EOSWrapper()
         {
             if (IL2CPPChainloader.Instance.Plugins.ContainsKey(INAS_GUID))
@@ -34,52 +31,52 @@ namespace ProgressionGear.Dependencies
             }
         }
 
-        public static void CacheLocks()
+        public static void CacheLocks(ref HashSet<uint>? whitelist, HashSet<uint> blacklist)
         {
             if (HasEOS)
             {
                 if (_isAmor)
-                    CacheLocksEOS_Amor();
+                    CacheLocksEOS_Amor(ref whitelist, blacklist);
                 else
-                    CacheLocksEOS_Inas();
+                    CacheLocksEOS_Inas(ref whitelist, blacklist);
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void CacheLocksEOS_Inas()
+        private static void CacheLocksEOS_Inas(ref HashSet<uint>? whitelist, HashSet<uint> blacklist)
         {
-            _targetIDs.Clear();
             var expDef = InasExpedition.ExpeditionDefinitionManager.Current.GetDefinition(InasExpedition.ExpeditionDefinitionManager.Current.CurrentMainLevelLayout);
-            if (expDef == null || expDef.ExpeditionGears == null)
-            {
-                _allow = false;
-                return;
-            }
+            if (expDef == null || expDef.ExpeditionGears == null) return;
 
-            _allow = expDef.ExpeditionGears.Mode == InasExpedition.Gears.Mode.ALLOW;
-            expDef.ExpeditionGears.GearIds.ForEach(id => _targetIDs.Add(id));
+            if (expDef.ExpeditionGears.Mode == InasExpedition.Gears.Mode.ALLOW)
+            {
+                whitelist ??= new();
+                whitelist.EnsureCapacity(expDef.ExpeditionGears.GearIds.Count + whitelist.Count);
+                whitelist.UnionWith(expDef.ExpeditionGears.GearIds);
+            }
+            else
+            {
+                blacklist.EnsureCapacity(expDef.ExpeditionGears.GearIds.Count + blacklist.Count);
+                blacklist.UnionWith(expDef.ExpeditionGears.GearIds);
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void CacheLocksEOS_Amor()
+        private static void CacheLocksEOS_Amor(ref HashSet<uint>? whitelist, HashSet<uint> blacklist)
         {
-            _targetIDs.Clear();
-            if (!AmorExpedition.ExpeditionDefinitionManager.Current.TryGetDefinition(AmorExpedition.ExpeditionDefinitionManager.CurrentMainLevelLayout, out var expDef) || expDef.ExpeditionGears == null)
+            if (!AmorExpedition.ExpeditionDefinitionManager.Current.TryGetDefinition(AmorExpedition.ExpeditionDefinitionManager.CurrentMainLevelLayout, out var expDef) || expDef.ExpeditionGears == null) return;
+
+            if (expDef.ExpeditionGears.Mode == AmorExpedition.Gears.Mode.ALLOW)
             {
-                _allow = false;
-                return;
+                whitelist ??= new();
+                whitelist.EnsureCapacity(expDef.ExpeditionGears.GearIds.Count + whitelist.Count);
+                whitelist.UnionWith(expDef.ExpeditionGears.GearIds);
             }
-
-            _allow = expDef.ExpeditionGears.Mode == AmorExpedition.Gears.Mode.ALLOW;
-            expDef.ExpeditionGears.GearIds.ForEach(id => _targetIDs.Add(id));
-        }
-
-        public static bool IsGearAllowed(uint id) => !HasEOS || IsGearAllowedEOS(id);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static bool IsGearAllowedEOS(uint id)
-        {
-            return _allow ? _targetIDs.Contains(id) : !_targetIDs.Contains(id);
+            else
+            {
+                blacklist.EnsureCapacity(expDef.ExpeditionGears.GearIds.Count + blacklist.Count);
+                blacklist.UnionWith(expDef.ExpeditionGears.GearIds);
+            }
         }
     }
 }

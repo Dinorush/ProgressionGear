@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ProgressionGear.Dependencies;
 using ProgressionGear.GearToggle;
+using ProgressionGear.LevelLock;
 
 namespace ProgressionGear.ProgressionLock
 {
@@ -14,8 +15,10 @@ namespace ProgressionGear.ProgressionLock
 
         public GearManager? VanillaGearManager { internal set; get; } // setup in patch: GearManager.SetupGearInOfflineMode
 
-
-        private readonly HashSet<uint> _lockedGearIds = new();
+        private HashSet<uint>? _whitelistGearIds;
+        private readonly HashSet<uint> _blacklistGearIds = new();
+        private HashSet<uint>? _overrideProgressionIds;
+        private bool _useOverrideProgression = false;
 
         internal readonly List<(InventorySlot inventorySlot, Dictionary<uint, GearIDRange> loadedGears)> GearSlots = new() {
             (InventorySlot.GearStandard, new()),
@@ -29,9 +32,15 @@ namespace ProgressionGear.ProgressionLock
             MTFO.API.MTFOHotReloadAPI.OnHotReload += SetupAllowedGearsForActiveRundown;
         }
 
-        private void ConfigRundownGears()
+        private struct PriorityLockData
         {
-            _lockedGearIds.Clear();
+            public int priority;
+            public bool locked;
+            public bool explicitLock;
+        }
+
+        private void ApplyProgressionLocks()
+        {
             GearToggleManager.Current.ResetToggleInfos();
             if (Configuration.DisableProgression)
                 return;
@@ -42,6 +51,9 @@ namespace ProgressionGear.ProgressionLock
             while (dataEnum.MoveNext())
             {
                 ProgressionLockData progData = dataEnum.Current;
+                if (progData.RundownIDs.Length > 0 && !progData.RundownIDs.Contains(ProgressionWrapper.CurrentRundownID))
+                    continue;
+
                 foreach (uint id in progData.OfflineIDs)
                 {
                     PriorityLockData lockData = new()
@@ -62,32 +74,90 @@ namespace ProgressionGear.ProgressionLock
                 }
             }
 
+            // Remove level-specific progression ignores
+            if (_useOverrideProgression)
+            {
+                if (_overrideProgressionIds != null)
+                {
+                    foreach (var id in _overrideProgressionIds)
+                        priorityIDs.Remove(id);
+                }
+                else
+                    priorityIDs.Clear();
+            }
+
             // Store locked IDs to remove from gear lists later
             foreach (var kv in priorityIDs.Where(kv => kv.Value.locked))
             {
-                _lockedGearIds.Add(kv.Key);
+                _blacklistGearIds.Add(kv.Key);
                 GearToggleManager.Current.RemoveFromToggleInfos(kv.Key);
-            }
-        }
-
-        private struct PriorityLockData
-        {
-            public int priority;
-            public bool locked;
-            public bool explicitLock;
-        }
-
-        private void ClearLoadedGears()
-        {
-            foreach (var slot in GearSlots)
-            {
-                VanillaGearManager!.m_gearPerSlot[(int)slot.inventorySlot].Clear();
             }
         }
 
         public bool IsGearAllowed(uint id)
         {
-            return !_lockedGearIds.Contains(id);
+            return (_whitelistGearIds?.Contains(id) ?? true) && (!_blacklistGearIds?.Contains(id) ?? true);
+        }
+
+        private void CacheLevelLocks()
+        {
+            _useOverrideProgression = false;
+            _whitelistGearIds = null;
+            _blacklistGearIds.Clear();
+            EOSWrapper.CacheLocks(ref _whitelistGearIds, _blacklistGearIds);
+
+            var expData = RundownManager.GetActiveExpeditionData();
+            var layoutID = RundownManager.ActiveExpedition.LevelLayoutData;
+            IEnumerator<LevelLockData> lockEnum = LevelLockManager.Current.GetEnumerator();
+            while (lockEnum.MoveNext())
+            {
+                LevelLockData lockData = lockEnum.Current;
+                if (lockData.RundownIDs.Length > 0 && !lockData.RundownIDs.Contains(ProgressionWrapper.CurrentRundownID))
+                    continue;
+
+                if (!lockData.Levels.Any(level => level.IsMatch(layoutID, expData.tier, expData.expeditionIndex)))
+                    continue;
+
+                var hasCleared = Configuration.DisableProgression;
+                if (!hasCleared)
+                {
+                    switch (lockData.UnlockMode)
+                    {
+                        case LevelUnlockMode.PerLevel:
+                            var progReq = lockData.LevelsToUnlock.Length > 0 ? lockData.LevelsToUnlock[0] : new();
+                            progReq.Tier = expData.tier;
+                            progReq.TierIndex = expData.expeditionIndex;
+                            hasCleared = IsComplete(progReq, lockData.UnlockMissingLevelDefault);
+                            break;
+                        case LevelUnlockMode.List:
+                            hasCleared = IsComplete(lockData.LevelsToUnlock, lockData.UnlockRequired, lockData.UnlockMissingLevelDefault);
+                            break;
+                    }
+                }
+
+                var whitelist = hasCleared ? lockData.UnlockWhitelistIDs : lockData.WhitelistIDs;
+                var blacklist = hasCleared ? lockData.UnlockBlacklistIDs : lockData.BlacklistIDs;
+
+                if (whitelist != null)
+                {
+                    _whitelistGearIds ??= new();
+                    _whitelistGearIds.EnsureCapacity(whitelist.Count + _whitelistGearIds.Count);
+                    _whitelistGearIds.UnionWith(whitelist);
+                }
+
+                if (blacklist != null)
+                {
+                    _blacklistGearIds.EnsureCapacity(blacklist.Count + _blacklistGearIds.Count);
+                    _blacklistGearIds.UnionWith(blacklist);
+                }
+
+                if (lockData.BypassProgression)
+                {
+                    _useOverrideProgression = true;
+                    _overrideProgressionIds = lockData.WhitelistIDs;
+                }
+                return;
+            }
         }
 
         // Modifies the gear in each slot to only unlocked gear.
@@ -97,6 +167,7 @@ namespace ProgressionGear.ProgressionLock
             foreach (var (inventorySlot, loadedGears) in GearSlots)
             {
                 var vanillaSlot = VanillaGearManager!.m_gearPerSlot[(int)inventorySlot];
+                vanillaSlot.Clear();
 
                 if (loadedGears.Count == 0)
                 {
@@ -106,11 +177,11 @@ namespace ProgressionGear.ProgressionLock
 
                 foreach (uint id in loadedGears.Keys)
                 {
-                    if (!EOSWrapper.IsGearAllowed(id))
+                    if (!IsGearAllowed(id))
                     {
                         GearToggleManager.Current.RemoveFromToggleInfos(id);
                     }
-                    else if (IsGearAllowed(id))
+                    else
                     {
                         vanillaSlot.Add(loadedGears[id]);
                     }
@@ -163,9 +234,8 @@ namespace ProgressionGear.ProgressionLock
         {
             if (!ProgressionWrapper.UpdateReferences()) return;
 
-            EOSWrapper.CacheLocks();
-            ConfigRundownGears();
-            ClearLoadedGears();
+            CacheLevelLocks();
+            ApplyProgressionLocks();
             AddGearForCurrentRundown();
             ResetPlayerSelectedGears();
             RemoveToggleGears();
@@ -189,7 +259,7 @@ namespace ProgressionGear.ProgressionLock
                 || (data.Lock.Any() && IsComplete(data.Lock, data.LockRequired, data.MissingLevelDefault));
         }
 
-        private static bool IsComplete(List<ProgressionRequirement> list, int require, bool valueIfNone)
+        private static bool IsComplete(IEnumerable<ProgressionRequirement> list, int require, bool valueIfNone)
         {
             if (require == 0)
             {

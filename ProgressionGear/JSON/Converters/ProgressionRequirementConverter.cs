@@ -4,7 +4,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ProgressionGear.JSON
+namespace ProgressionGear.JSON.Converters
 {
     public sealed class ProgressionRequirementConverter : JsonConverter<ProgressionRequirement>
     {
@@ -116,7 +116,7 @@ namespace ProgressionGear.JSON
                 if (value.LevelLayoutID != 0)
                     writer.WriteNumberValue(value.LevelLayoutID);
                 else
-                    writer.WriteStringValue(value.Tier.ToString());
+                    writer.WriteStringValue(value.Tier.ToString()[^1] + (value.TierIndex >= 0 ? (value.TierIndex + 1).ToString() : ""));
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace ProgressionGear.JSON
             if (value.LevelLayoutID != 0)
                 writer.WriteNumberValue(value.LevelLayoutID);
             else
-                writer.WriteStringValue(value.Tier.ToString() + (value.TierIndex >= 0 ? value.TierIndex + 1 : ""));
+                writer.WriteStringValue(value.Tier.ToString()[^1] + (value.TierIndex >= 0 ? (value.TierIndex + 1).ToString() : ""));
             writer.WriteBoolean(nameof(value.Main), value.Main);
             writer.WriteBoolean(nameof(value.Secondary), value.Secondary);
             writer.WriteBoolean(nameof(value.Overload), value.Overload);

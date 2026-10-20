@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using ProgressionGear.JSON.Converters;
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ProgressionGear.ProgressionLock
 {
@@ -58,6 +61,8 @@ namespace ProgressionGear.ProgressionLock
         public bool MissingLevelDefault { get; set; } = true;
         public List<uint> OfflineIDs { get; set; } = new();
         public int Priority { get; set; } = 0;
+        [JsonConverter(typeof(OptionalArrayConverter<uint>))]
+        public uint[] RundownIDs { get; set; } = Array.Empty<uint>();
         public string Name { get; set; } = string.Empty;
     }
 }

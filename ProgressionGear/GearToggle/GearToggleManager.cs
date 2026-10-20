@@ -128,7 +128,10 @@ namespace ProgressionGear.GearToggle
         {
             if (!_idToInfo.TryGetValue(id, out ToggleInfo info)) return;
 
+            // Remove from toggle list
             info.ids.Remove(id);
+
+            // Remove the toggle list if only a single element remains
             if (info.ids.Count == 1)
                 _idToInfo.Remove(info.ids[0]);
             _idToInfo.Remove(id);

@@ -6,10 +6,11 @@ using ProgressionGear.Dependencies;
 using ProgressionGear.Patches;
 using Gear;
 using ProgressionGear.GearToggle;
+using ProgressionGear.LevelLock;
 
 namespace ProgressionGear;
 
-[BepInPlugin(GUID, MODNAME, "1.6.5")]
+[BepInPlugin(GUID, MODNAME, "1.7.0")]
 [BepInDependency("dev.gtfomodding.gtfo-api", BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(MTFOWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(PartialDataWrapper.PLUGIN_GUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -42,6 +43,7 @@ internal sealed class EntryPoint : BasePlugin
         GearLockManager.Current.Init();
         GearToggleManager.Current.Init();
         ProgressionLockManager.Current.Init();
+        LevelLockManager.Current.Init();
 
         DinoLogger.Log("Loaded " + MODNAME);
     }

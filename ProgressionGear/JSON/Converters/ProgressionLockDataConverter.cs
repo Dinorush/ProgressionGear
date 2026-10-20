@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ProgressionGear.JSON
+namespace ProgressionGear.JSON.Converters
 {
     public sealed class ProgressionLockDataConverter : JsonConverter<ProgressionLockData>
     {

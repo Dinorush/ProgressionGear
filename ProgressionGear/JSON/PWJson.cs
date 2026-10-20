@@ -4,6 +4,7 @@ using System.Text.Json;
 using GTFO.API.JSON.Converters;
 using ProgressionGear.Dependencies;
 using System.Diagnostics.CodeAnalysis;
+using ProgressionGear.JSON.Converters;
 
 namespace ProgressionGear.JSON
 {
