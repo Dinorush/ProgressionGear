@@ -14,6 +14,9 @@ namespace ProgressionGear.JSON.Converters
 
             if (reader.TokenType != JsonTokenType.StartObject) throw new JsonException("Expected progression lock to be an object");
 
+            JsonSerializerOptions optionalListOptions = new(options);
+            optionalListOptions.Converters.Add(new OptionalArrayConverter<ProgressionRequirement>());
+            optionalListOptions.Converters.Add(new OptionalArrayConverter<uint>());
             while (reader.Read())
             {
                 if (reader.TokenType == JsonTokenType.EndObject)
@@ -28,7 +31,7 @@ namespace ProgressionGear.JSON.Converters
                     case "unlocklayoutids":
                     case "unlocktiers":
                     case "unlock":
-                        if (PWJson.TryDeserialize<List<ProgressionRequirement>>(ref reader, out var unlocks, options))
+                        if (PWJson.TryDeserialize<ProgressionRequirement[]>(ref reader, out var unlocks, optionalListOptions))
                             data.Unlock = unlocks;
                         break;
                     case "unlockrequired":
@@ -38,7 +41,7 @@ namespace ProgressionGear.JSON.Converters
                     case "locklayoutids":
                     case "locktiers":
                     case "lock":
-                        if (PWJson.TryDeserialize<List<ProgressionRequirement>>(ref reader, out var locks, options))
+                        if (PWJson.TryDeserialize<ProgressionRequirement[]>(ref reader, out var locks, optionalListOptions))
                             data.Lock = locks;
                         break;
                     case "lockrequired":
@@ -57,7 +60,12 @@ namespace ProgressionGear.JSON.Converters
                         if (reader.TokenType != JsonTokenType.Number) throw new JsonException("Expected number for Priority");
                         data.Priority = reader.GetInt32();
                         break;
-                    case "overload":
+                    case "rundownids":
+                    case "rundownid":
+                        if (PWJson.TryDeserialize<uint[]>(ref reader, out var rundownIDs, optionalListOptions))
+                            data.RundownIDs = rundownIDs;
+                        break;
+                    case "name":
                         if (reader.TokenType != JsonTokenType.String) throw new JsonException("Expected string for Name");
                         data.Name = reader.GetString()!;
                         break;
