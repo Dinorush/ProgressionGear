@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ProgressionGear.JSON.Converters;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ProgressionGear.GearToggle
 {
@@ -22,6 +24,7 @@ namespace ProgressionGear.GearToggle
         };
 
         public List<uint> OfflineIDs { get; set; } = DefaultIDs;
+        [JsonConverter(typeof(OptionalArrayConverter<Localization.LocalizedText>))]
         public Localization.LocalizedText[] ButtonText { get; set; } = DefaultTextArr;
         public bool ReverseOrder { get; set; } = false;
         public string Name { get; set; } = string.Empty;

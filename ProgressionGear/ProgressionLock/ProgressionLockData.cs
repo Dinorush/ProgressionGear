@@ -11,7 +11,7 @@ namespace ProgressionGear.ProgressionLock
         {
             new()
             {
-                Unlock = new()
+                Unlock = new[]
                 {
                     new ProgressionRequirement()
                     {
@@ -36,7 +36,7 @@ namespace ProgressionGear.ProgressionLock
                     }
                 },
                 UnlockRequired = 2,
-                Lock = new()
+                Lock = new[]
                 {
                     new ProgressionRequirement()
                     {
@@ -54,9 +54,11 @@ namespace ProgressionGear.ProgressionLock
             }
         };
 
-        public List<ProgressionRequirement> Unlock { get; set; } = new();
+        [JsonConverter(typeof(OptionalArrayConverter<ProgressionRequirement>))]
+        public ProgressionRequirement[] Unlock { get; set; } = Array.Empty<ProgressionRequirement>();
         public int UnlockRequired = 0;
-        public List<ProgressionRequirement> Lock { get; set; } = new();
+        [JsonConverter(typeof(OptionalArrayConverter<ProgressionRequirement>))]
+        public ProgressionRequirement[] Lock { get; set; } = Array.Empty<ProgressionRequirement>();
         public int LockRequired = 0;
         public bool MissingLevelDefault { get; set; } = true;
         public List<uint> OfflineIDs { get; set; } = new();
