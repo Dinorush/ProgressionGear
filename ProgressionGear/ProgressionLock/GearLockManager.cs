@@ -118,8 +118,8 @@ namespace ProgressionGear.ProgressionLock
                 if (!lockData.Levels.Any(level => level.IsMatch(layoutID, expData.tier, expData.expeditionIndex)))
                     continue;
 
-                var hasCleared = Configuration.DisableProgression;
-                if (!hasCleared)
+                var hasCleared = false;
+                if (!Configuration.DisableProgression)
                 {
                     switch (lockData.UnlockMode)
                     {
@@ -134,6 +134,8 @@ namespace ProgressionGear.ProgressionLock
                             break;
                     }
                 }
+                else
+                    hasCleared = lockData.UnlockMode != LevelUnlockMode.None;
 
                 var whitelist = hasCleared ? lockData.UnlockWhitelistIDs : lockData.WhitelistIDs;
                 var blacklist = hasCleared ? lockData.UnlockBlacklistIDs : lockData.BlacklistIDs;
